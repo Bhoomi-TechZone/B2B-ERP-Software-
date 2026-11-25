@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import {
   Users, Search, Filter, Eye, Edit, Trash2, Mail, Phone,
@@ -8,10 +9,20 @@ import SuperAdminTopBar from '../../components/TopBar'
 import superAdminService from '../../../services/superAdminService'
 
 export default function LeadsManagementPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialStatus = searchParams.get('status') || 'all'
+
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState(initialStatus)
+
+  useEffect(() => {
+    const qStatus = searchParams.get('status')
+    if (qStatus && qStatus !== statusFilter) {
+      setStatusFilter(qStatus)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchLeads()

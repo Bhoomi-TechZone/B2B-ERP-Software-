@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { buildSignInUrl } from '../../utils/authSession'
 import { motion, AnimatePresence } from 'motion/react'
 import {
   CheckCircle2, Loader2, AlertCircle, Eye, EyeOff,
@@ -82,7 +83,7 @@ export default function AcceptInvitePage() {
         notification_prefs: {},
       })
       setStep(3)
-      setTimeout(() => navigate('/login'), 4000)
+      setTimeout(() => navigate(buildSignInUrl({ ref: 'invite', op: 'authorize', mode: 'enterprise' })), 4000)
     } catch (err) {
       setSubmitError(err.message || 'Failed to create account')
     } finally {
@@ -110,7 +111,7 @@ export default function AcceptInvitePage() {
         </div>
         <h2 className="text-lg font-bold text-slate-900">Invitation Invalid</h2>
         <p className="mt-2 text-sm text-slate-500">{tokenError}</p>
-        <button onClick={() => navigate('/login')}
+        <button onClick={() => navigate(buildSignInUrl({ ref: 'invite', op: 'authorize', mode: 'enterprise' }))}
           className="mt-6 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
           Go to Login
         </button>
@@ -132,7 +133,7 @@ export default function AcceptInvitePage() {
           Welcome, <span className="font-semibold text-slate-700">{preferred_name || inviteData?.email}</span>
         </p>
         <p className="mt-1 text-xs text-slate-400">Redirecting to login in a moment...</p>
-        <button onClick={() => navigate('/login')}
+        <button onClick={() => navigate(buildSignInUrl({ ref: 'invite', op: 'authorize', mode: 'enterprise' }))}
           className="mt-6 w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
           Go to Login
         </button>
@@ -360,3 +361,4 @@ export default function AcceptInvitePage() {
     </div>
   )
 }
+

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { 
   Search, 
@@ -110,8 +111,12 @@ const normalizeLead = (backendLead, agents = []) => {
 }
 
 const LeadsModule = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialStatus = searchParams.get('status') || 'all'
+  const initialTab = searchParams.get('tab') || 'overview'
+
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState(initialStatus)
   const [sourceFilter, setSourceFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [agentFilter, setAgentFilter] = useState('all')
@@ -131,7 +136,19 @@ const LeadsModule = () => {
   const [showAddLeadModal, setShowAddLeadModal] = useState(false)
   const [editingLead, setEditingLead] = useState(null)
   const [selectedLead, setSelectedLead] = useState(null)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState(initialTab)
+
+  // Sync state with URL params if they change
+  useEffect(() => {
+    const qStatus = searchParams.get('status')
+    if (qStatus && qStatus !== statusFilter) {
+      setStatusFilter(qStatus)
+    }
+    const qTab = searchParams.get('tab')
+    if (qTab && qTab !== activeTab) {
+      setActiveTab(qTab)
+    }
+  }, [searchParams])
 
   const [leads, setLeads] = useState([])
   const [salesUsers, setSalesUsers] = useState([])

@@ -10,20 +10,20 @@ import { useState } from 'react'
 import superAdminService from '../../services/superAdminService.js'
 
 const NAV_LINKS = [
-  { label: 'Dashboard',     icon: LayoutDashboard, path: '/super-admin',          exact: true  },
-  { label: 'Tenants',       icon: Building2,        path: '/super-admin/tenants',  exact: false },
-  { label: 'Users',         icon: Users,            path: '/super-admin/users',    exact: false },
-  { label: 'Plans',         icon: Package,          path: '/super-admin/plans',    exact: false },
-  { label: 'Billing',       icon: CreditCard,       path: '/super-admin/billing',  exact: false },
-  { label: 'Leads',         icon: BarChart2,        path: '/super-admin/leads',    exact: false },
-  { label: 'System Health', icon: Activity,         path: null,                    exact: false },
-  { label: 'Reports',       icon: BarChart2,        path: null,                    exact: false },
-  { label: 'Settings',      icon: Sliders,          path: '/super-admin/settings', exact: false },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/super-admin/dashboard/overview?ref=sidebar&tab=overview', exact: false },
+  { label: 'Tenants', icon: Building2, path: '/super-admin/tenants/overview?ref=sidebar&tab=all&status=active&page=1', exact: false },
+  { label: 'Users', icon: Users, path: '/super-admin/users/overview?ref=sidebar&tab=all&status=active&page=1', exact: false },
+  { label: 'Plans', icon: Package, path: '/super-admin/plans/overview?ref=sidebar&tab=plans&status=active', exact: false },
+  { label: 'Billing', icon: CreditCard, path: '/finance/payments/overview?ref=sidebar&tab=invoices&status=all&page=1', exact: false },
+  { label: 'Leads', icon: BarChart2, path: '/leads/management/overview?ref=sidebar&tab=all&status=new', exact: false },
+  { label: 'System Health', icon: Activity, path: null, exact: false },
+  { label: 'Reports', icon: BarChart2, path: null, exact: false },
+  { label: 'Settings', icon: Sliders, path: '/super-admin/settings/overview?ref=sidebar&tab=general', exact: false },
 ]
 
 export default function SuperAdminTopBar() {
-  const navigate   = useNavigate()
-  const location   = useLocation()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { logout } = useAuth()
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [profileData, setProfileData] = useState(null)
@@ -68,8 +68,9 @@ export default function SuperAdminTopBar() {
 
   const isActive = (link) => {
     if (!link.path) return false
-    if (link.exact) return location.pathname === link.path
-    return location.pathname.startsWith(link.path)
+    const cleanLink = link.path.split('?')[0]
+    if (link.exact) return location.pathname === cleanLink
+    return location.pathname === cleanLink || location.pathname.startsWith(cleanLink + '/')
   }
 
   return (
@@ -80,7 +81,7 @@ export default function SuperAdminTopBar() {
         {/* Brand */}
         <div
           className="flex items-center gap-2.5 cursor-pointer select-none"
-          onClick={() => navigate('/super-admin')}
+          onClick={() => navigate('/super-admin/dashboard/overview?ref=sidebar&tab=overview')}
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#1251C5] to-[#1a6fe8] shadow">
             <Layers className="h-4 w-4 text-white" />
@@ -315,7 +316,7 @@ export default function SuperAdminTopBar() {
       {/* ── Row 2: Navigation links ── */}
       <div className="flex items-center gap-1 px-6 overflow-x-auto">
         {NAV_LINKS.map((link) => {
-          const Icon   = link.icon
+          const Icon = link.icon
           const active = isActive(link)
           const disabled = !link.path
 

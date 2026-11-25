@@ -5,6 +5,7 @@ import { Check, Zap, Shield, Tag, Users, Globe, X, Crown, Star, Package, Chevron
 import plansService from '../services/plansService'
 import onboardingService from '../services/onboardingService'
 import { getInitialRegion, fetchAndVerifyRegion, saveUserRegionPreference } from '../utils/geoDetection'
+import { buildSignInUrl, buildRegisterUrl } from '../utils/authSession'
 
 const PRICING_REGIONS = [
   { code: 'US', label: 'United States', flag: '🇺🇸', currency: 'USD', symbol: '$' },
@@ -39,15 +40,41 @@ function LandingPage() {
     })
   }, [])
 
+  // Clean up any '#' or hash fragment from the URL bar on landing page
+  useEffect(() => {
+    const cleanHash = () => {
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+    }
+    cleanHash()
+    window.addEventListener('hashchange', cleanHash)
+    return () => window.removeEventListener('hashchange', cleanHash)
+  }, [])
+
+  const scrollTo = (id) => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   const handleRegionChange = (newRegion) => {
     setPricingRegion(newRegion)
     saveUserRegionPreference(newRegion)
   }
 
+  const currentRegion = PRICING_REGIONS.find(r => r.code === pricingRegion) || PRICING_REGIONS[0]
+
+  // Only show plans available in the user's detected region
+  const availablePlans = plans.filter(p =>
+    !p.regions_allowed?.length || p.regions_allowed.includes(pricingRegion)
+  )
+
   // Calculate avg saving % across plans for selected region
   const avgSaving = (() => {
     const keys = REGION_PRICE_KEYS[pricingRegion]
-    const validPlans = plans.filter(p => p[keys.monthly] > 0 && p[keys.yearly] > 0)
+    const validPlans = availablePlans.filter(p => p[keys.monthly] > 0 && p[keys.yearly] > 0)
     if (!validPlans.length) return null
     const savings = validPlans.map(p => {
       const monthlyAnnual = p[keys.monthly] * 12
@@ -105,17 +132,17 @@ function LandingPage() {
               className="h-10 w-52 object-contain sm:h-12 sm:w-64 lg:h-14 lg:w-72"
             />
             <div className="hidden items-center gap-7 text-[1rem] font-semibold text-[#252b38] lg:flex">
-              <a href="#" className="transition hover:text-[#f68b1f]">Platform</a>
-              <a href="#" className="transition hover:text-[#f68b1f]">Use Cases</a>
-              <a href="#" className="transition hover:text-[#f68b1f]">Compliance</a>
-              <a href="#pricing" onClick={(e) => { e.preventDefault(); document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }) }} className="transition hover:text-[#f68b1f]">Pricing</a>
+              <button type="button" onClick={() => scrollTo('platform')} className="transition hover:text-[#f68b1f] cursor-pointer">Platform</button>
+              <button type="button" onClick={() => scrollTo('use-cases')} className="transition hover:text-[#f68b1f] cursor-pointer">Use Cases</button>
+              <button type="button" onClick={() => scrollTo('compliance')} className="transition hover:text-[#f68b1f] cursor-pointer">Compliance</button>
+              <button type="button" onClick={() => scrollTo('pricing')} className="transition hover:text-[#f68b1f] cursor-pointer">Pricing</button>
             </div>
           </div>
 
           <div className="hidden items-center gap-3 lg:flex">
             <button
               type="button"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(buildSignInUrl({ ref: 'landing', mode: 'enterprise', op: 'authorize' }))}
               className="px-4 py-2.5 text-sm font-bold text-[#273047] transition hover:text-[#f68b1f] cursor-pointer"
             >
               Sign In
@@ -156,16 +183,16 @@ function LandingPage() {
               className="border-t border-black/10 bg-white px-5 py-4 lg:hidden"
             >
               <div className="space-y-1 text-base font-semibold text-[#252b38]">
-                <a href="#" className="block rounded-lg px-3 py-2 hover:bg-black/5">Platform</a>
-                <a href="#" className="block rounded-lg px-3 py-2 hover:bg-black/5">Use Cases</a>
-                <a href="#" className="block rounded-lg px-3 py-2 hover:bg-black/5">Compliance</a>
-                <a href="#" className="block rounded-lg px-3 py-2 hover:bg-black/5">Pricing</a>
+                <button type="button" onClick={() => { scrollTo('platform'); setMobileMenuOpen(false); }} className="block w-full text-left rounded-lg px-3 py-2 hover:bg-black/5 cursor-pointer">Platform</button>
+                <button type="button" onClick={() => { scrollTo('use-cases'); setMobileMenuOpen(false); }} className="block w-full text-left rounded-lg px-3 py-2 hover:bg-black/5 cursor-pointer">Use Cases</button>
+                <button type="button" onClick={() => { scrollTo('compliance'); setMobileMenuOpen(false); }} className="block w-full text-left rounded-lg px-3 py-2 hover:bg-black/5 cursor-pointer">Compliance</button>
+                <button type="button" onClick={() => { scrollTo('pricing'); setMobileMenuOpen(false); }} className="block w-full text-left rounded-lg px-3 py-2 hover:bg-black/5 cursor-pointer">Pricing</button>
               </div>
               <div className="mt-4 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    navigate('/login')
+                    navigate(buildSignInUrl({ ref: 'landing', mode: 'enterprise', op: 'authorize' }))
                     setMobileMenuOpen(false)
                   }}
                   className="w-full rounded-xl border border-[#d5d9e3] bg-white px-4 py-2.5 text-sm font-bold text-[#273047] text-center"
@@ -188,7 +215,7 @@ function LandingPage() {
         </AnimatePresence>
       </header>
 
-      <section className="mx-auto w-full max-w-7xl px-5 pb-16 pt-10 sm:px-8 sm:pt-14 lg:pt-16">
+      <section id="platform" className="mx-auto w-full max-w-7xl px-5 pb-16 pt-10 sm:px-8 sm:pt-14 lg:pt-16">
         <div className="grid items-center gap-8 lg:grid-cols-[1fr_1fr] lg:gap-12">
           <Motion.div
             initial={{ opacity: 0, y: 22 }}
@@ -257,7 +284,7 @@ function LandingPage() {
           </Motion.div>
         </div>
 
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        <div id="use-cases" className="mt-14 grid gap-4 md:grid-cols-3">
           {[
             {
               title: 'Global Entity Registration',
@@ -274,6 +301,7 @@ function LandingPage() {
           ].map((card, idx) => (
             <Motion.div
               key={card.title}
+              id={card.title === 'Compliance Autopilot' ? 'compliance' : undefined}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.22 + idx * 0.08 }}
@@ -309,20 +337,6 @@ function LandingPage() {
 
           {/* Controls row */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            {/* Region selector */}
-            <div className="flex items-center gap-1 rounded-xl border border-[#dde2ec] bg-white p-1">
-              {PRICING_REGIONS.map(r => (
-                <button key={r.code} onClick={() => handleRegionChange(r.code)}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold transition ${
-                    pricingRegion === r.code
-                      ? 'bg-[#f68b1f] text-white shadow'
-                      : 'text-[#556078] hover:text-[#1d2433]'
-                  }`}>
-                  {r.flag} {r.code}
-                </button>
-              ))}
-            </div>
-
             {/* Billing toggle */}
             <div className="flex items-center gap-1 rounded-xl border border-[#dde2ec] bg-white p-1">
               {['monthly', 'yearly'].map(cycle => (
@@ -351,28 +365,28 @@ function LandingPage() {
           </div>
         )}
 
-        {/* Plans grid */}
-        {!plansLoading && plans.length > 0 && (
-          <div className={`grid gap-6 ${plans.length === 1 ? 'max-w-sm mx-auto' : plans.length === 2 ? 'md:grid-cols-2 max-w-3xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
-            {plans.map((plan, idx) => (
+        {/* Plans grid - filtered strictly by region */}
+        {!plansLoading && availablePlans.length > 0 && (
+          <div className={`grid gap-6 ${availablePlans.length === 1 ? 'max-w-sm mx-auto' : availablePlans.length === 2 ? 'md:grid-cols-2 max-w-3xl mx-auto' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+            {availablePlans.map((plan, idx) => (
               <PricingCard
                 key={plan.id || plan.slug}
                 plan={plan}
-                region={PRICING_REGIONS.find(r => r.code === pricingRegion)}
+                region={currentRegion}
                 billingCycle={billingCycle}
-                featured={idx === Math.floor(plans.length / 2)}
+                featured={idx === Math.floor(availablePlans.length / 2)}
                 onGetStarted={(slug, cycle, region) =>
-                  navigate(`/registration?plan=${slug}&billing=${cycle}&region=${region}`)
+                  navigate(buildRegisterUrl({ ref: 'landing', plan: slug, billing: cycle, region }))
                 }
               />
             ))}
           </div>
         )}
 
-        {/* Fallback if no plans */}
-        {!plansLoading && plans.length === 0 && (
+        {/* Fallback if no plans for this region */}
+        {!plansLoading && availablePlans.length === 0 && (
           <div className="text-center py-12 text-[#556078]">
-            <p className="text-base">Pricing plans coming soon. <button onClick={() => setShowPlanModal(true)} className="text-[#f68b1f] font-bold underline">Get started free</button></p>
+            <p className="text-base">No plans currently available in {currentRegion.label}. <button onClick={() => setShowPlanModal(true)} className="text-[#f68b1f] font-bold underline">View all available plans</button></p>
           </div>
         )}
       </section>
@@ -387,7 +401,7 @@ function LandingPage() {
             onClose={() => setShowPlanModal(false)}
             onSelect={(slug, billing, region) => {
               setShowPlanModal(false)
-              navigate(`/registration?plan=${slug}&billing=${billing}&region=${region}`)
+              navigate(buildRegisterUrl({ ref: 'landing', plan: slug, billing, region }))
             }}
           />
         )}
@@ -467,18 +481,8 @@ function PlanSelectModal({ plans, loading, initialRegion = 'US', onClose, onSele
         </div>
 
         <div className="p-8">
-          {/* Region + Billing toggles */}
+          {/* Billing toggle */}
           <div className="flex flex-wrap items-center gap-3 mb-8">
-            <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
-              {PRICING_REGIONS.map(r => (
-                <button key={r.code} onClick={() => setRegion(r.code)}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition ${
-                    region === r.code ? 'bg-white shadow text-[#1d2433]' : 'text-slate-400 hover:text-slate-700'
-                  }`}>
-                  {r.flag} {r.code}
-                </button>
-              ))}
-            </div>
             <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
               {['monthly', 'yearly'].map(c => (
                 <button key={c} onClick={() => setBilling(c)}

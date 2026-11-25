@@ -58,7 +58,11 @@ const Sidebar = memo(() => {
     const map = {}
     for (const s of sections) {
       for (const item of s.items) {
-        if (item.children?.some(c => location.pathname.startsWith(c.path) || location.pathname === item.path)) {
+        const itemClean = item.path ? item.path.split('?')[0] : ''
+        if (item.children?.some(c => {
+          const cClean = c.path ? c.path.split('?')[0] : ''
+          return location.pathname.startsWith(cClean) || location.pathname === itemClean
+        })) {
           map[item.path] = true
         }
       }
@@ -69,12 +73,14 @@ const Sidebar = memo(() => {
   const [openGroups, setOpenGroups] = useState(initiallyOpen)
   useEffect(() => { setOpenGroups(prev => ({ ...prev, ...initiallyOpen })) }, [initiallyOpen])
 
-  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helpers ────────────────────────────────────────────────────────────────
   const handleNav = useCallback((path) => navigate(path), [navigate])
 
   const isActive = useCallback((path) => {
-    if (location.pathname === path) return true
-    if (path !== '/' && location.pathname.startsWith(path + '/')) return true
+    if (!path) return false
+    const cleanPath = path.split('?')[0]
+    if (location.pathname === cleanPath) return true
+    if (cleanPath !== '/' && location.pathname.startsWith(cleanPath + '/')) return true
     return false
   }, [location.pathname])
 
@@ -201,8 +207,9 @@ const Sidebar = memo(() => {
                             >
                               {item.children.map(sub => {
                                 const SubIcon = sub.icon
-                                const subActive = location.pathname === sub.path
-                                  || location.pathname.startsWith(sub.path + '/')
+                                const subClean = sub.path ? sub.path.split('?')[0] : ''
+                                const subActive = location.pathname === subClean
+                                  || location.pathname.startsWith(subClean + '/')
                                 return (
                                   <motion.button
                                     key={sub.path}

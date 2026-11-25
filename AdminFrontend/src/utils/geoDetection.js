@@ -9,114 +9,138 @@ export const VALID_PRICING_REGIONS = ['US', 'UK', 'EU', 'IN']
 
 /**
  * 1. Synchronous Instant Detection (0 ms):
- * Reads user's stored preference, or detects from browser timezone and locale.
+ * Reads user's active session choice, or detects accurately from system timezone & offset.
  */
 export function getInitialRegion() {
-  if (typeof window === 'undefined') return 'US'
+  if (typeof window === 'undefined') return 'IN'
 
-  // 1. Manually saved user preference (highest priority)
-  const savedPref = localStorage.getItem('preferred_pricing_region')
-  if (savedPref && VALID_PRICING_REGIONS.includes(savedPref)) {
-    return savedPref
+  // If user explicitly picked a region during THIS session, respect it
+  const sessionUserChoice = sessionStorage.getItem('user_selected_region')
+  if (sessionUserChoice && VALID_PRICING_REGIONS.includes(sessionUserChoice)) {
+    return sessionUserChoice
   }
 
-  // 2. Previously detected in current session
-  const sessionDetected = sessionStorage.getItem('detected_pricing_region')
-  if (sessionDetected && VALID_PRICING_REGIONS.includes(sessionDetected)) {
-    return sessionDetected
-  }
-
-  // 3. Detect from browser Timezone & Language
+  // Clear any legacy test keys in localStorage that might have been saved on localhost
   try {
-    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase()
-    
-    // India
-    if (tz.includes('kolkata') || tz.includes('calcutta') || tz.includes('india')) {
+    localStorage.removeItem('preferred_pricing_region')
+  } catch {}
+
+  try {
+    // 1. Timezone offset check:
+    // Indian Standard Time (IST) is UTC+5:30. In JavaScript, getTimezoneOffset() returns -330 minutes.
+    // This is 100% reliable hardware-level detection for India.
+    const offset = new Date().getTimezoneOffset()
+    if (offset === -330) {
       return 'IN'
     }
 
-    // UK
-    if (tz.includes('london') || tz.includes('belfast')) {
+    // 2. Timezone name check
+    const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase()
+    if (
+      tz.includes('kolkata') ||
+      tz.includes('calcutta') ||
+      tz.includes('india') ||
+      tz.includes('asia/kolkata') ||
+      tz.includes('asia/calcutta')
+    ) {
+      return 'IN'
+    }
+
+    if (tz.includes('london') || tz.includes('belfast') || tz.includes('europe/london')) {
       return 'UK'
     }
 
-    // Europe
     if (tz.startsWith('europe/')) {
       return 'EU'
     }
 
-    // Language fallback (e.g. en-IN, hi-IN, en-GB)
+    if (tz.startsWith('america/')) {
+      return 'US'
+    }
+
+    // 3. Browser Language fallback
     const languages = navigator.languages || [navigator.language || '']
     for (const lang of languages) {
       const lower = lang.toLowerCase()
-      if (lower.endsWith('-in')) return 'IN'
+      if (lower.endsWith('-in') || lower.startsWith('hi-') || lower === 'hi') return 'IN'
       if (lower.endsWith('-gb')) return 'UK'
+      if (lower.endsWith('-us')) return 'US'
     }
   } catch (err) {
     console.warn('Browser timezone/locale detection error:', err)
   }
 
-  // Default for US and Global / Rest of the World
+  // Default fallback
   return 'US'
 }
 
 /**
  * 2. Background Asynchronous Verification:
  * Fetches user country via lightweight IP geolocation API.
- * Updates sessionStorage and returns verified region if different.
  */
 export async function fetchAndVerifyRegion() {
   if (typeof window === 'undefined') return null
 
-  // If user has explicitly picked a preference, don't override
-  const savedPref = localStorage.getItem('preferred_pricing_region')
-  if (savedPref && VALID_PRICING_REGIONS.includes(savedPref)) {
-    return savedPref
+  // If user has explicitly picked a preference in this session, keep it
+  const sessionUserChoice = sessionStorage.getItem('user_selected_region')
+  if (sessionUserChoice && VALID_PRICING_REGIONS.includes(sessionUserChoice)) {
+    return sessionUserChoice
   }
 
-  // If already verified in this session, return cached
-  const sessionVerified = sessionStorage.getItem('detected_pricing_region')
-  if (sessionVerified && VALID_PRICING_REGIONS.includes(sessionVerified)) {
-    return sessionVerified
+  // Instant check: If timezone offset is -330, visitor is definitely in India
+  if (new Date().getTimezoneOffset() === -330) {
+    return 'IN'
   }
 
-  try {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 2500) // 2.5s max timeout
-
-    const res = await fetch('https://api.country.is/', {
-      signal: controller.signal
-    })
-    clearTimeout(timeoutId)
-
-    if (!res.ok) return null
-    const data = await res.json()
-    const country = (data.country || '').toUpperCase()
-
-    let detectedRegion = 'US'
-    if (country === 'IN') {
-      detectedRegion = 'IN'
-    } else if (country === 'GB') {
-      detectedRegion = 'UK'
-    } else if (EU_COUNTRIES.has(country)) {
-      detectedRegion = 'EU'
-    } else {
-      detectedRegion = 'US' // USA and all other global countries
+  // IP Geolocation fallback
+  const fetchCountry = async (url, extractCountry) => {
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 2000)
+      const res = await fetch(url, { signal: controller.signal })
+      clearTimeout(timeoutId)
+      if (!res.ok) return null
+      const data = await res.json()
+      return extractCountry(data)
+    } catch {
+      return null
     }
-
-    sessionStorage.setItem('detected_pricing_region', detectedRegion)
-    return detectedRegion
-  } catch {
-    // Silently ignore if offline, timed out, or blocked by ad-blocker
-    return null
   }
+
+  const providers = [
+    { url: 'https://freeipapi.com/api/json', fn: (d) => d.countryCode },
+    { url: 'https://ipapi.co/json/', fn: (d) => d.country_code },
+    { url: 'https://ipwho.is/', fn: (d) => d.country_code },
+  ]
+
+  let country = null
+  for (const provider of providers) {
+    country = await fetchCountry(provider.url, provider.fn)
+    if (country) break
+  }
+
+  if (!country) return null
+
+  country = country.toUpperCase()
+  let detectedRegion = 'US'
+  if (country === 'IN') {
+    detectedRegion = 'IN'
+  } else if (country === 'GB') {
+    detectedRegion = 'UK'
+  } else if (EU_COUNTRIES.has(country)) {
+    detectedRegion = 'EU'
+  } else {
+    detectedRegion = 'US'
+  }
+
+  return detectedRegion
 }
 
 /**
- * 3. Save explicit user choice when they click any tab
+ * 3. Save explicit user choice when changed via dropdown
  */
 export function saveUserRegionPreference(regionCode) {
   if (VALID_PRICING_REGIONS.includes(regionCode)) {
-    localStorage.setItem('preferred_pricing_region', regionCode)
+    sessionStorage.setItem('user_selected_region', regionCode)
   }
 }

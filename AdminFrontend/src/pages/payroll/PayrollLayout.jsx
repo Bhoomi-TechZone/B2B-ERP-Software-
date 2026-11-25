@@ -26,10 +26,13 @@ const PayrollLayout = memo(() => {
   // Sub-tabs for current region
   const tabs = SUB_TABS.map(t => ({
     ...t,
-    path: `${activeRegion.basePath}/${t.suffix}`,
+    path: `${activeRegion.basePath}/${t.suffix}/overview?ref=sidebar&region=${activeRegion.code}&tab=${t.suffix}`,
   }))
 
-  const isTabActive = (path) => pathname === path || pathname.startsWith(path + '/')
+  const isTabActive = (path) => {
+    const clean = path.split('?')[0]
+    return pathname === clean || pathname.startsWith(clean + '/')
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#F7F8FA]">
@@ -50,7 +53,7 @@ const PayrollLayout = memo(() => {
               return (
                 <motion.button
                   key={r.code}
-                  onClick={() => navigate(`${r.basePath}/dashboard`)}
+                  onClick={() => navigate(`${r.basePath}/dashboard/overview?ref=sidebar&region=${r.code}&tab=dashboard`)}
                   whileTap={{ scale: 0.96 }}
                   className={`relative rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                     active

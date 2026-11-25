@@ -41,14 +41,14 @@ export default function RecruitmentLayout() {
   }, [])
 
   const tabs = useMemo(() => [
-    { path: '/recruitment/requisitions', label: 'Requisitions', icon: ClipboardList, count: stats.openRequisitions },
-    { path: '/recruitment/jobs',         label: 'Job Postings', icon: Briefcase,    count: stats.activeJobs       },
-    { path: '/recruitment/candidates',   label: 'Candidates',   icon: Users,        count: stats.totalCandidates  },
-    { path: '/recruitment/applications', label: 'Pipeline',     icon: Columns,      count: null                   },
-    { path: '/recruitment/interviews',   label: 'Interviews',   icon: CalendarDays, count: stats.scheduledInterviews },
-    { path: '/recruitment/offers',       label: 'Offers',       icon: FileText,     count: stats.offersOut        },
-    { path: '/recruitment/hired',        label: 'Hired',        icon: TrendingUp,   count: stats.hired            },
-    { path: '/recruitment/sources',      label: 'Sources',      icon: Settings,     count: null                   },
+    { path: '/recruitment/requisitions/overview?ref=sidebar&tab=requisitions&status=all&page=1', label: 'Requisitions', icon: ClipboardList, count: stats.openRequisitions },
+    { path: '/recruitment/jobs/overview?ref=sidebar&tab=jobs&status=active&page=1', label: 'Job Postings', icon: Briefcase, count: stats.activeJobs },
+    { path: '/recruitment/candidates/overview?ref=sidebar&tab=candidates&status=all&page=1', label: 'Candidates', icon: Users, count: stats.totalCandidates },
+    { path: '/recruitment/pipeline/overview?ref=sidebar&tab=pipeline&stage=all', label: 'Pipeline', icon: Columns, count: null },
+    { path: '/recruitment/interviews/overview?ref=sidebar&tab=interviews&status=scheduled&page=1', label: 'Interviews', icon: CalendarDays, count: stats.scheduledInterviews },
+    { path: '/recruitment/offers/overview?ref=sidebar&tab=offers&status=all&page=1', label: 'Offers', icon: FileText, count: stats.offersOut },
+    { path: '/recruitment/hired/overview?ref=sidebar&tab=hired&status=all&page=1', label: 'Hired', icon: TrendingUp, count: stats.hired },
+    { path: '/recruitment/sources/overview?ref=sidebar&tab=sources&status=active', label: 'Sources', icon: Settings, count: null },
   ], [stats])
 
   const currentIdx = tabs.findIndex(t => location.pathname.startsWith(t.path))
@@ -72,11 +72,11 @@ export default function RecruitmentLayout() {
           {/* Quick stats */}
           <div className="flex flex-wrap gap-2">
             {[
-              { label: 'Open Req', value: stats.openRequisitions, color: 'text-blue-700 bg-blue-50'     },
-              { label: 'Live Jobs', value: stats.activeJobs,       color: 'text-indigo-700 bg-indigo-50' },
+              { label: 'Open Req', value: stats.openRequisitions, color: 'text-blue-700 bg-blue-50' },
+              { label: 'Live Jobs', value: stats.activeJobs, color: 'text-indigo-700 bg-indigo-50' },
               { label: 'Candidates', value: stats.totalCandidates, color: 'text-violet-700 bg-violet-50' },
               { label: 'Interviews', value: stats.scheduledInterviews, color: 'text-amber-700 bg-amber-50' },
-              { label: 'Hired',    value: stats.hired,             color: 'text-emerald-700 bg-emerald-50'},
+              { label: 'Hired', value: stats.hired, color: 'text-emerald-700 bg-emerald-50' },
             ].map(s => (
               <div key={s.label} className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 ${s.color}`}>
                 <span className="text-lg font-bold">{s.value}</span>
@@ -90,23 +90,22 @@ export default function RecruitmentLayout() {
         <div className="flex overflow-x-auto border-t border-slate-100 px-6">
           {tabs.map((tab, i) => {
             const Icon = tab.icon
-            const active = location.pathname.startsWith(tab.path)
+            const cleanTarget = tab.path.split('?')[0]
+            const active = location.pathname === cleanTarget || location.pathname.startsWith(cleanTarget + '/')
             return (
               <NavLink
                 key={tab.path}
                 to={tab.path}
-                className={`relative flex items-center gap-2 py-3 px-4 text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                  active
+                className={`relative flex items-center gap-2 py-3 px-4 text-xs font-semibold whitespace-nowrap transition cursor-pointer ${active
                     ? 'text-blue-600'
                     : 'text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 <Icon className={`h-4 w-4 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
                 {tab.label}
                 {tab.count !== null && (
-                  <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                    active ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
-                  }`}>
+                  <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${active ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
+                    }`}>
                     {tab.count}
                   </span>
                 )}

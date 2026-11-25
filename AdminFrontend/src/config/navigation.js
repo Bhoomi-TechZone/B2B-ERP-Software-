@@ -44,16 +44,16 @@ export const NAV_SECTIONS = [
   {
     title: 'DASHBOARD',
     items: [
-      { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.SUPER_ADMIN] },
-      { label: 'Dashboard', path: '/hr/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
-      { label: 'Dashboard', path: '/payroll-admin/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.PAYROLL_ADMIN] },
-      { label: 'Dashboard', path: '/recruiter/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.RECRUITER] },
-      { label: 'Dashboard', path: '/finance-viewer/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.FINANCE_VIEWER] },
-      { label: 'Dashboard', path: '/it-admin/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.IT_ADMIN] },
-      { label: 'Dashboard', path: '/manager/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.MANAGER] },
-      { label: 'Dashboard', path: '/sales/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.SALES] },
-      { label: 'Dashboard', path: '/employee/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.EMPLOYEE], module: 'dashboard_employee' },
-      { label: 'My Profile', path: '/my-profile', icon: Contact, roles: [ROLE_IDS.EMPLOYEE], module: 'my_profile' },
+      { label: 'Dashboard', path: '/admin/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.SUPER_ADMIN] },
+      { label: 'Dashboard', path: '/hr/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
+      { label: 'Dashboard', path: '/payroll-admin/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.PAYROLL_ADMIN] },
+      { label: 'Dashboard', path: '/recruiter/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.RECRUITER] },
+      { label: 'Dashboard', path: '/finance-viewer/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.FINANCE_VIEWER] },
+      { label: 'Dashboard', path: '/it-admin/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.IT_ADMIN] },
+      { label: 'Dashboard', path: '/manager/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.MANAGER] },
+      { label: 'Dashboard', path: '/sales/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.SALES] },
+      { label: 'Dashboard', path: '/employee/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.EMPLOYEE], module: 'dashboard_employee' },
+      { label: 'My Profile', path: '/employee/profile/overview?ref=sidebar&tab=personal', icon: Contact, roles: [ROLE_IDS.EMPLOYEE], module: 'my_profile' },
     ],
   },
 
@@ -62,10 +62,10 @@ export const NAV_SECTIONS = [
     title: 'CRM & SALES',
     module: 'crm',
     items: [
-      { label: 'Leads', path: '/crm/leads/sales-lead', icon: Contact, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
-      { label: 'Opportunities', path: '/crm/opportunities', icon: TrendingUp, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
-      { label: 'Demo Schedule', path: '/crm/demo-schedule', icon: Calendar, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
-      { label: 'Clients', path: '/crm/clients', icon: Users, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
+      { label: 'Leads', path: '/leads/management/overview?ref=sidebar&tab=all&status=new', icon: Contact, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
+      { label: 'Opportunities', path: '/crm/opportunities/overview?ref=sidebar&tab=all&status=open', icon: TrendingUp, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
+      { label: 'Demo Schedule', path: '/crm/demo-schedule/overview?ref=sidebar&tab=all&status=upcoming', icon: Calendar, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
+      { label: 'Clients', path: '/crm/clients/overview?ref=sidebar&tab=all&status=active', icon: Users, roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.SALES, ROLE_IDS.MANAGER] },
     ],
   },
 
@@ -73,9 +73,9 @@ export const NAV_SECTIONS = [
   {
     title: 'HR MANAGEMENT',
     items: [
-      { label: 'Employees', path: '/employees', icon: Users, module: 'employees', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
-      { label: 'Departments', path: '/departments', icon: Building2, module: 'departments', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
-      { label: 'Exit Management', path: '/employees/exit', icon: DoorOpen, module: 'employees', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
+      { label: 'Employees', path: '/hr/employees/overview?ref=sidebar&tab=all&status=active&page=1', icon: Users, module: 'employees', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
+      { label: 'Departments', path: '/hr/departments/overview?ref=sidebar&tab=all&status=active', icon: Building2, module: 'departments', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
+      { label: 'Exit Management', path: '/hr/employees/exit/overview?ref=sidebar&tab=all&status=pending', icon: DoorOpen, module: 'employees', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
       {
         label: 'Attendance',
         path: '/attendance',
@@ -83,12 +83,12 @@ export const NAV_SECTIONS = [
         module: 'attendance',
         roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.EMPLOYEE],
         children: [
-          { label: 'Monitoring', path: '/attendance/daily', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Monthly Logs', path: '/attendance/monthly', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Shift Roster', path: '/attendance/shifts', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Regularization', path: '/attendance/requests', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.EMPLOYEE] },
-          { label: 'Compliance', path: '/attendance/compliance', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Integrations', path: '/attendance/biometric', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Monitoring', path: '/attendance/monitoring/overview?ref=sidebar&tab=daily&status=all&page=1', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Monthly Logs', path: '/attendance/logs/overview?ref=sidebar&tab=monthly&status=all&page=1', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Shift Roster', path: '/attendance/shifts/overview?ref=sidebar&tab=roster&status=active', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Regularization', path: '/attendance/requests/overview?ref=sidebar&tab=requests&status=all&page=1', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.EMPLOYEE] },
+          { label: 'Compliance', path: '/attendance/compliance/overview?ref=sidebar&tab=compliance&status=all', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Integrations', path: '/attendance/biometric/overview?ref=sidebar&tab=config', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
         ]
       },
       {
@@ -98,15 +98,15 @@ export const NAV_SECTIONS = [
         module: 'leave',
         roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.PAYROLL_ADMIN],
         children: [
-          { label: 'Policies', path: '/leave/policies', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Balance', path: '/leave/balance', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Requests', path: '/leave/requests', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
-          { label: 'Calendar', path: '/leave/calendar', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Policies', path: '/leave/policies/overview?ref=sidebar&tab=policies', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Balance', path: '/leave/balance/overview?ref=sidebar&tab=balance', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Requests', path: '/leave/requests/overview?ref=sidebar&tab=requests&status=all&page=1', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
+          { label: 'Calendar', path: '/leave/calendar/overview?ref=sidebar&tab=calendar', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR] },
         ]
       },
-      { label: 'Payroll', path: '/payroll', icon: DollarSign, module: 'payroll', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.PAYROLL_ADMIN] },
-      { label: 'My Payroll', path: '/my-payroll', icon: DollarSign, roles: [ROLE_IDS.EMPLOYEE], module: 'my_payroll' },
-      { label: 'My Documents', path: '/my-documents', icon: FileText, roles: [ROLE_IDS.EMPLOYEE], module: 'my_documents' },
+      { label: 'Payroll', path: '/payroll/management/overview?ref=sidebar&region=in&tab=dashboard', icon: DollarSign, module: 'payroll', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.PAYROLL_ADMIN] },
+      { label: 'My Payroll', path: '/payroll/employee/overview?ref=sidebar&tab=payslips&page=1', icon: DollarSign, roles: [ROLE_IDS.EMPLOYEE], module: 'my_payroll' },
+      { label: 'My Documents', path: '/employee/documents/overview?ref=sidebar&tab=all', icon: FileText, roles: [ROLE_IDS.EMPLOYEE], module: 'my_documents' },
       {
         label: 'Recruitment',
         path: '/recruitment',
@@ -114,14 +114,14 @@ export const NAV_SECTIONS = [
         module: 'ats',
         roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.RECRUITER],
         children: [
-          { label: 'Sources', path: '/recruitment/sources' },
-          { label: 'Requisitions', path: '/recruitment/requisitions' },
-          { label: 'Jobs', path: '/recruitment/jobs' },
-          { label: 'Candidates', path: '/recruitment/candidates' },
-          { label: 'Pipeline', path: '/recruitment/applications' },
-          { label: 'Interviews', path: '/recruitment/interviews' },
-          { label: 'Offers', path: '/recruitment/offers' },
-          { label: 'Hired', path: '/recruitment/hired' },
+          { label: 'Sources', path: '/recruitment/sources/overview?ref=sidebar&tab=sources&status=active' },
+          { label: 'Requisitions', path: '/recruitment/requisitions/overview?ref=sidebar&tab=requisitions&status=all&page=1' },
+          { label: 'Jobs', path: '/recruitment/jobs/overview?ref=sidebar&tab=jobs&status=active&page=1' },
+          { label: 'Candidates', path: '/recruitment/candidates/overview?ref=sidebar&tab=candidates&status=all&page=1' },
+          { label: 'Pipeline', path: '/recruitment/pipeline/overview?ref=sidebar&tab=pipeline&stage=all' },
+          { label: 'Interviews', path: '/recruitment/interviews/overview?ref=sidebar&tab=interviews&status=scheduled&page=1' },
+          { label: 'Offers', path: '/recruitment/offers/overview?ref=sidebar&tab=offers&status=all&page=1' },
+          { label: 'Hired', path: '/recruitment/hired/overview?ref=sidebar&tab=hired&status=all&page=1' },
         ]
       },
     ],
@@ -132,9 +132,9 @@ export const NAV_SECTIONS = [
     title: 'PROJECTS & TASKS',
     module: 'projects',
     items: [
-      { label: 'Projects', path: '/projects', icon: FolderKanban, roles: ALL_ROLES },
-      { label: 'Notes', path: '/notes', icon: StickyNote, roles: STAFF },
-      { label: 'Announcements', path: '/announcements', icon: Megaphone, roles: ALL_ROLES, module: 'announcements' },
+      { label: 'Projects', path: '/projects/management/overview?ref=sidebar&tab=all&status=active&page=1', icon: FolderKanban, roles: ALL_ROLES },
+      { label: 'Notes', path: '/admin/notes/overview?ref=sidebar&tab=all', icon: StickyNote, roles: STAFF },
+      { label: 'Announcements', path: '/announcements/management/overview?ref=sidebar&tab=all&page=1', icon: Megaphone, roles: ALL_ROLES, module: 'announcements' },
     ],
   },
 
@@ -143,11 +143,11 @@ export const NAV_SECTIONS = [
   {
     title: 'ADMINISTRATION',
     items: [
-      { label: 'Users & Roles', path: '/admin/users', icon: Users, module: 'administration', roles: [ROLE_IDS.SUPER_ADMIN] },
-      { label: 'Billing', path: '/admin/subscription', icon: CreditCard, module: 'administration', roles: [ROLE_IDS.SUPER_ADMIN] },
-      { label: 'Reports', path: '/admin/reports', icon: BarChart3, module: 'reports', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
-      { label: 'Settings', path: '/settings', icon: Settings, module: 'settings', roles: [ROLE_IDS.SUPER_ADMIN] },
-      { label: 'My Settings', path: '/my-settings', icon: Settings, roles: [ROLE_IDS.EMPLOYEE], module: 'my_settings' },
+      { label: 'Users & Roles', path: '/admin/users/overview?ref=sidebar&tab=users&status=active&page=1', icon: Users, module: 'administration', roles: [ROLE_IDS.SUPER_ADMIN] },
+      { label: 'Billing & Payments', path: '/finance/payments/overview?ref=sidebar&tab=invoices&status=all&page=1', icon: CreditCard, module: 'administration', roles: [ROLE_IDS.SUPER_ADMIN] },
+      { label: 'Reports', path: '/admin/reports/overview?ref=sidebar&tab=summary&page=1', icon: BarChart3, module: 'reports', roles: [ROLE_IDS.SUPER_ADMIN, ROLE_IDS.HR, ROLE_IDS.HR_ADMIN] },
+      { label: 'Settings', path: '/admin/settings/overview?ref=sidebar&tab=general', icon: Settings, module: 'settings', roles: [ROLE_IDS.SUPER_ADMIN] },
+      { label: 'My Settings', path: '/employee/settings/overview?ref=sidebar&tab=preferences', icon: Settings, roles: [ROLE_IDS.EMPLOYEE], module: 'my_settings' },
     ],
   },
 
@@ -155,9 +155,9 @@ export const NAV_SECTIONS = [
   {
     title: 'SUPPORT & COMPLIANCE',
     items: [
-      { label: 'Compliance', path: '/compliance', icon: ShieldCheck, module: 'compliance', roles: STAFF },
-      { label: 'Tickets', path: '/tickets', icon: Ticket, module: 'tickets', roles: STAFF },
-      { label: 'Help Desk', path: '/my-help-desk', icon: HelpCircle, roles: [ROLE_IDS.EMPLOYEE], module: 'my_help_desk' },
+      { label: 'Compliance', path: '/compliance/management/overview?ref=sidebar&tab=all&status=active', icon: ShieldCheck, module: 'compliance', roles: STAFF },
+      { label: 'Tickets', path: '/support/tickets/overview?ref=sidebar&tab=tickets&status=open&page=1', icon: Ticket, module: 'tickets', roles: STAFF },
+      { label: 'Help Desk', path: '/support/help-desk/overview?ref=sidebar&tab=all', icon: HelpCircle, roles: [ROLE_IDS.EMPLOYEE], module: 'my_help_desk' },
     ],
   },
 ]
@@ -166,8 +166,8 @@ export const EMPLOYEE_NAV = [
   {
     title: '',
     items: [
-      { label: 'Dashboard', path: '/employee/dashboard', icon: LayoutDashboard, roles: [ROLE_IDS.EMPLOYEE], module: 'dashboard_employee' },
-      { label: 'My Profile', path: '/my-profile', icon: Contact, roles: [ROLE_IDS.EMPLOYEE], module: 'my_profile' },
+      { label: 'Dashboard', path: '/employee/dashboard/overview?ref=sidebar&tab=overview', icon: LayoutDashboard, roles: [ROLE_IDS.EMPLOYEE], module: 'dashboard_employee' },
+      { label: 'My Profile', path: '/employee/profile/overview?ref=sidebar&tab=personal', icon: Contact, roles: [ROLE_IDS.EMPLOYEE], module: 'my_profile' },
       {
         label: 'Attendance',
         path: '/attendance',
@@ -175,9 +175,9 @@ export const EMPLOYEE_NAV = [
         module: 'attendance_employee',
         roles: [ROLE_IDS.EMPLOYEE],
         children: [
-          { label: 'My Attendance', path: '/attendance/my-attendance', roles: [ROLE_IDS.EMPLOYEE], module: 'attendance_employee' },
-          { label: 'Monthly Logs', path: '/attendance/my-logs', roles: [ROLE_IDS.EMPLOYEE], module: 'attendance_employee' },
-          { label: 'Regularization Requests', path: '/attendance/my-requests', roles: [ROLE_IDS.EMPLOYEE], module: 'attendance_employee' },
+          { label: 'My Attendance', path: '/attendance/my-attendance/overview?ref=sidebar&tab=my-attendance', roles: [ROLE_IDS.EMPLOYEE], module: 'attendance_employee' },
+          { label: 'Monthly Logs', path: '/attendance/my-logs/overview?ref=sidebar&tab=logs&page=1', roles: [ROLE_IDS.EMPLOYEE], module: 'attendance_employee' },
+          { label: 'Regularization Requests', path: '/attendance/my-requests/overview?ref=sidebar&tab=requests&status=all', roles: [ROLE_IDS.EMPLOYEE], module: 'attendance_employee' },
         ]
       },
       {
@@ -187,12 +187,12 @@ export const EMPLOYEE_NAV = [
         module: 'leave_employee',
         roles: [ROLE_IDS.EMPLOYEE],
         children: [
-          { label: 'Leave Balance', path: '/leave/balance', roles: [ROLE_IDS.EMPLOYEE], module: 'leave_employee' },
-          { label: 'Leave History', path: '/leave/history', roles: [ROLE_IDS.EMPLOYEE], module: 'leave_employee' },
+          { label: 'Leave Balance', path: '/leave/balance/overview?ref=sidebar&tab=balance', roles: [ROLE_IDS.EMPLOYEE], module: 'leave_employee' },
+          { label: 'Leave History', path: '/leave/history/overview?ref=sidebar&tab=history&page=1', roles: [ROLE_IDS.EMPLOYEE], module: 'leave_employee' },
         ]
       },
-      { label: 'Payroll', path: '/my-payroll', icon: DollarSign, roles: [ROLE_IDS.EMPLOYEE], module: 'my_payroll' },
-      { label: 'My Documents', path: '/my-documents', icon: FileText, roles: [ROLE_IDS.EMPLOYEE], module: 'my_documents' },
+      { label: 'Payroll', path: '/payroll/employee/overview?ref=sidebar&tab=payslips&page=1', icon: DollarSign, roles: [ROLE_IDS.EMPLOYEE], module: 'my_payroll' },
+      { label: 'My Documents', path: '/employee/documents/overview?ref=sidebar&tab=all', icon: FileText, roles: [ROLE_IDS.EMPLOYEE], module: 'my_documents' },
       {
         label: 'Projects & Tasks',
         path: '/projects',
@@ -200,13 +200,13 @@ export const EMPLOYEE_NAV = [
         module: 'projects_employee',
         roles: [ROLE_IDS.EMPLOYEE],
         children: [
-          { label: 'My Projects', path: '/projects', icon: FolderKanban, roles: [ROLE_IDS.EMPLOYEE], module: 'projects_employee' },
-          { label: 'My Tasks', path: '/tasks', icon: CheckSquare, roles: [ROLE_IDS.EMPLOYEE], module: 'projects_employee' },
+          { label: 'My Projects', path: '/projects/management/overview?ref=sidebar&tab=all&status=active&page=1', icon: FolderKanban, roles: [ROLE_IDS.EMPLOYEE], module: 'projects_employee' },
+          { label: 'My Tasks', path: '/tasks/management/overview?ref=sidebar&tab=all&status=all&page=1', icon: CheckSquare, roles: [ROLE_IDS.EMPLOYEE], module: 'projects_employee' },
         ]
       },
-      { label: 'Announcements', path: '/announcements', icon: Megaphone, roles: [ROLE_IDS.EMPLOYEE], module: 'announcements' },
-      { label: 'Help Desk', path: '/my-help-desk', icon: HelpCircle, roles: [ROLE_IDS.EMPLOYEE], module: 'my_help_desk' },
-      { label: 'Settings', path: '/my-settings', icon: Settings, roles: [ROLE_IDS.EMPLOYEE], module: 'my_settings' },
+      { label: 'Announcements', path: '/announcements/management/overview?ref=sidebar&tab=all&page=1', icon: Megaphone, roles: [ROLE_IDS.EMPLOYEE], module: 'announcements' },
+      { label: 'Help Desk', path: '/support/help-desk/overview?ref=sidebar&tab=all', icon: HelpCircle, roles: [ROLE_IDS.EMPLOYEE], module: 'my_help_desk' },
+      { label: 'Settings', path: '/employee/settings/overview?ref=sidebar&tab=preferences', icon: Settings, roles: [ROLE_IDS.EMPLOYEE], module: 'my_settings' },
     ]
   }
 ]
@@ -219,7 +219,8 @@ export const buildRoutePermissions = () => {
   const map = {}
   const visit = (path, roles, module) => {
     if (!path || !roles?.length) return
-    map[path] = { roles, module }
+    const cleanPath = path.split('?')[0]
+    map[cleanPath] = { roles, module }
   }
   const traverse = (sections) => {
     for (const section of sections) {

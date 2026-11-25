@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { buildSignInUrl, buildRecoveryUrl } from '../../utils/authSession'
 import { motion } from 'motion/react'
 import {
   CheckCircle2, Loader2, AlertCircle, Eye, EyeOff,
@@ -93,7 +94,7 @@ export default function ResetPasswordPage() {
         confirm_password: confirm_password,
       })
       setSuccess(true)
-      setTimeout(() => navigate('/login'), 4000)
+      setTimeout(() => navigate(buildSignInUrl({ ref: 'reset', op: 'authorize', mode: 'enterprise' })), 4000)
     } catch (err) {
       setSubmitError(err.message || 'Failed to reset password')
     } finally {
@@ -122,11 +123,11 @@ export default function ResetPasswordPage() {
         <h2 className="text-lg font-bold text-slate-900">Reset Link Expired or Invalid</h2>
         <p className="mt-2 text-sm text-slate-500">{tokenError}</p>
         <div className="mt-6 space-y-2">
-          <button onClick={() => navigate('/login?recovery=true')}
+          <button onClick={() => navigate(buildRecoveryUrl({ ref: 'reset' }))}
             className="w-full rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white hover:bg-blue-700 transition shadow-md shadow-blue-200">
             Request New Reset Link
           </button>
-          <button onClick={() => navigate('/login')}
+          <button onClick={() => navigate(buildSignInUrl({ ref: 'reset', op: 'authorize', mode: 'enterprise' }))}
             className="w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition">
             Go to Login
           </button>
@@ -149,7 +150,7 @@ export default function ResetPasswordPage() {
           Your password has been successfully reset.
         </p>
         <p className="mt-1 text-xs text-slate-400">Redirecting to login in a moment...</p>
-        <button onClick={() => navigate('/login')}
+        <button onClick={() => navigate(buildSignInUrl({ ref: 'reset', op: 'authorize', mode: 'enterprise' }))}
           className="mt-6 w-full rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">
           Go to Login
         </button>
@@ -201,7 +202,7 @@ export default function ResetPasswordPage() {
                     {submitError.toLowerCase().includes('token') && (
                       <button
                         type="button"
-                        onClick={() => navigate('/login?recovery=true')}
+                        onClick={() => navigate(buildRecoveryUrl({ ref: 'reset' }))}
                         className="mt-2 inline-flex items-center text-xs font-bold text-blue-600 hover:underline"
                       >
                         Request a new reset link &rarr;
@@ -299,7 +300,7 @@ export default function ResetPasswordPage() {
 
         <p className="mt-4 text-center text-xs text-slate-400">
           Remember your password?{' '}
-          <button onClick={() => navigate('/login')} className="text-blue-600 hover:underline">
+          <button onClick={() => navigate(buildSignInUrl({ ref: 'reset', op: 'authorize', mode: 'enterprise' }))} className="text-blue-600 hover:underline">
             Back to Login
           </button>
         </p>
@@ -307,3 +308,4 @@ export default function ResetPasswordPage() {
     </div>
   )
 }
+

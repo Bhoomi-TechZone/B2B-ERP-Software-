@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
+import { buildSignInUrl, buildRegisterUrl } from '../../utils/authSession'
 import { 
   Mail, Lock, Eye, EyeOff, LogIn, 
   Globe, ShieldCheck, ArrowRight,
@@ -269,7 +270,7 @@ const LoginPage = ({ initialRecoveryOpen = false }) => {
       
       // After MFA, proceed with login (reuse the original login data or store it)
       // For now, navigate to dashboard
-      navigate('/admin/dashboard', { replace: true })
+      navigate('/admin/dashboard/overview?ref=login&tab=overview', { replace: true })
     } catch {
       setError('Invalid verification code. Please try again.')
     } finally {
@@ -436,7 +437,7 @@ const LoginPage = ({ initialRecoveryOpen = false }) => {
 
                 <p className="text-center text-xs font-semibold text-slate-500 pt-1">
                   Don't have an account?{' '}
-                  <Link to="/registration" className="text-blue-600 font-black hover:underline">
+                  <Link to={buildRegisterUrl({ ref: 'login', mode: 'new-company' })} className="text-blue-600 font-black hover:underline">
                     Register company &rarr;
                   </Link>
                 </p>
