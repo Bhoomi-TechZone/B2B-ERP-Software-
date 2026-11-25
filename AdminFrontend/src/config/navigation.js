@@ -339,7 +339,7 @@ export const filterNavForRole = (roleId, activeModules = {}, userModules = null)
       const isEmployeeRole = roleId === ROLE_IDS.EMPLOYEE;
       let hasAccess = false;
       let hasExplicitConfig = false;
-      
+
       // Check admin module permission
       let adminConfig = userModules[module];
       if (adminConfig === undefined && (module === 'departments' || module === 'employees')) {
@@ -355,14 +355,14 @@ export const filterNavForRole = (roleId, activeModules = {}, userModules = null)
         hasExplicitConfig = true;
         hasAccess = hasAccess || adminConfig.read === true || adminConfig.write === true;
       }
-      
+
       // Check employee-specific module permission if the user is an employee
       if (isEmployeeRole) {
         let empModule = null;
         if (module === 'leave') empModule = 'leave_employee';
         if (module === 'attendance') empModule = 'attendance_employee';
         if (module === 'projects') empModule = 'projects_employee';
-        
+
         if (empModule) {
           const empConfig = userModules[empModule];
           if (empConfig !== undefined) {
@@ -375,7 +375,7 @@ export const filterNavForRole = (roleId, activeModules = {}, userModules = null)
           }
         }
       }
-      
+
       // If the module was configured in database, use that access check.
       // If userModules is active but this specific module is NOT configured, hide it by default.
       return hasExplicitConfig && hasAccess;

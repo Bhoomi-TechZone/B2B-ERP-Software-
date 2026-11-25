@@ -80,13 +80,13 @@ const Sidebar = memo(() => {
 
   const badgeClass = (b) => {
     switch (b) {
-      case 'NEW':   return 'bg-green-100 text-green-700'
+      case 'NEW': return 'bg-green-100 text-green-700'
       case 'ADMIN': return 'bg-purple-100 text-purple-700'
       case 'SALES': return 'bg-blue-100 text-blue-700'
-      case 'HR':    return 'bg-orange-100 text-orange-700'
-      case 'MGR':   return 'bg-emerald-100 text-emerald-700'
-      case 'ME':    return 'bg-slate-100 text-slate-700'
-      default:      return 'bg-gray-100 text-gray-700'
+      case 'HR': return 'bg-orange-100 text-orange-700'
+      case 'MGR': return 'bg-emerald-100 text-emerald-700'
+      case 'ME': return 'bg-slate-100 text-slate-700'
+      default: return 'bg-gray-100 text-gray-700'
     }
   }
 
@@ -132,8 +132,8 @@ const Sidebar = memo(() => {
 
                 <div className="space-y-1">
                   {section.items.map((item) => {
-                    const Icon  = item.icon
-                    const open  = !!openGroups[item.path]
+                    const Icon = item.icon
+                    const open = !!openGroups[item.path]
                     const grouped = !!item.children?.length
 
                     if (!grouped) {
@@ -144,9 +144,8 @@ const Sidebar = memo(() => {
                           title={isCollapsed ? item.label : ''}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-                            isActive(item.path) ? activeBgClass : 'text-gray-700 hover:bg-gray-100'
-                          } ${isCollapsed ? 'justify-center' : ''}`}
+                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isActive(item.path) ? activeBgClass : 'text-gray-700 hover:bg-gray-100'
+                            } ${isCollapsed ? 'justify-center' : ''}`}
                           style={isActive(item.path) ? { backgroundColor: brandColor, color: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' } : {}}
                         >
                           <Icon className="h-5 w-5" />
@@ -176,9 +175,8 @@ const Sidebar = memo(() => {
                           title={isCollapsed ? item.label : ''}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
-                            isGroupActive ? activeBgClass : 'text-gray-700 hover:bg-gray-100'
-                          } ${isCollapsed ? 'justify-center' : ''}`}
+                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${isGroupActive ? activeBgClass : 'text-gray-700 hover:bg-gray-100'
+                            } ${isCollapsed ? 'justify-center' : ''}`}
                           style={isGroupActive ? { backgroundColor: brandColor, color: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' } : {}}
                         >
                           <Icon className="h-5 w-5" />
@@ -211,9 +209,8 @@ const Sidebar = memo(() => {
                                     onClick={() => handleNav(sub.path)}
                                     whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.99 }}
-                                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                                      subActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${subActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+                                      }`}
                                   >
                                     {SubIcon && <SubIcon className="h-3.5 w-3.5" />}
                                     {sub.label}
@@ -267,9 +264,8 @@ const Sidebar = memo(() => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 8, scale: 0.97 }}
                 transition={{ duration: 0.18 }}
-                className={`absolute bottom-20 z-50 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ${
-                  isCollapsed ? 'left-4' : 'left-4 right-4 w-auto'
-                }`}
+                className={`absolute bottom-20 z-50 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ${isCollapsed ? 'left-4' : 'left-4 right-4 w-auto'
+                  }`}
               >
                 <div className="border-b border-gray-100 p-3">
                   <div className="flex items-center gap-3">

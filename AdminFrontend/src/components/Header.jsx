@@ -9,35 +9,35 @@ import { ROLE_IDS, ROLES } from '../config/roles'
 
 // Centralised page-title map. Falls back to a humanised path segment.
 const TITLE_MAP = {
-  '/dashboard':           'Dashboard',
-  '/admin/dashboard':     'Admin Dashboard',
-  '/admin/users':         'User Management',
-  '/admin/reports':       'System Reports',
-  '/hr/dashboard':        'HR Dashboard',
-  '/hr/employees':        'Employee Management',
-  '/manager/dashboard':   'Manager Dashboard',
-  '/sales/dashboard':     'Sales Dashboard',
-  '/sales/leads':         'My Leads',
-  '/sales/deals':         'My Deals',
-  '/employee/dashboard':  'My Workspace',
-  '/employees':           'Employees',
-  '/employees/create':    'Add Employee',
-  '/employees/exit':      'Exit Management',
-  '/payroll':             'Payroll',
-  '/leave':               'Leave Management',
-  '/attendance':          'Attendance',
-  '/attendance/daily':    'Daily Attendance',
-  '/attendance/monthly':  'Monthly Attendance',
+  '/dashboard': 'Dashboard',
+  '/admin/dashboard': 'Admin Dashboard',
+  '/admin/users': 'User Management',
+  '/admin/reports': 'System Reports',
+  '/hr/dashboard': 'HR Dashboard',
+  '/hr/employees': 'Employee Management',
+  '/manager/dashboard': 'Manager Dashboard',
+  '/sales/dashboard': 'Sales Dashboard',
+  '/sales/leads': 'My Leads',
+  '/sales/deals': 'My Deals',
+  '/employee/dashboard': 'My Workspace',
+  '/employees': 'Employees',
+  '/employees/create': 'Add Employee',
+  '/employees/exit': 'Exit Management',
+  '/payroll': 'Payroll',
+  '/leave': 'Leave Management',
+  '/attendance': 'Attendance',
+  '/attendance/daily': 'Daily Attendance',
+  '/attendance/monthly': 'Monthly Attendance',
   '/attendance/requests': 'Attendance Requests',
-  '/crm':                 'Lead Management (CRM)',
-  '/recruitment':         'Recruitment (ATS)',
-  '/projects':            'Projects & Tasks',
-  '/tasks':               'My Tasks',
-  '/performance':         'Performance',
-  '/compliance':          'Compliance',
-  '/reports':             'Reports',
-  '/settings':            'Settings',
-  '/onboarding':          'Client Onboarding',
+  '/crm': 'Lead Management (CRM)',
+  '/recruitment': 'Recruitment (ATS)',
+  '/projects': 'Projects & Tasks',
+  '/tasks': 'My Tasks',
+  '/performance': 'Performance',
+  '/compliance': 'Compliance',
+  '/reports': 'Reports',
+  '/settings': 'Settings',
+  '/onboarding': 'Client Onboarding',
 }
 
 const humanise = (segment) =>
@@ -114,9 +114,9 @@ const Header = memo(() => {
             className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition hover:bg-gray-50"
           >
             {user?.avatarUrl ? (
-              <img 
-                src={user.avatarUrl} 
-                alt={user?.name || 'User'} 
+              <img
+                src={user.avatarUrl}
+                alt={user?.name || 'User'}
                 className="h-8 w-8 rounded-full object-cover"
               />
             ) : (
@@ -143,9 +143,9 @@ const Header = memo(() => {
                 <div className="border-b border-gray-100 p-3">
                   <div className="flex items-center gap-3">
                     {user?.avatarUrl ? (
-                      <img 
-                        src={user.avatarUrl} 
-                        alt={user?.name || 'User'} 
+                      <img
+                        src={user.avatarUrl}
+                        alt={user?.name || 'User'}
                         className="h-10 w-10 rounded-full object-cover"
                       />
                     ) : (
