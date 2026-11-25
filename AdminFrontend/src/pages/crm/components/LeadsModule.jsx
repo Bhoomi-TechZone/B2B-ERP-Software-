@@ -103,6 +103,7 @@ const normalizeLead = (backendLead, agents = []) => {
     rawPriority: backendLead.priority,
     activities: [],
     notes,
+    assignmentHistory: Array.isArray(backendLead.assignment_history) ? backendLead.assignment_history : [],
     lastActivity: backendLead.updated_at || null,
     _raw: backendLead,
   }
@@ -135,7 +136,7 @@ const LeadsModule = () => {
   const [leads, setLeads] = useState([])
   const [salesUsers, setSalesUsers] = useState([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [_error, setError] = useState(null)
   const [selectedAgentId, setSelectedAgentId] = useState('')
 
   // Qualify lead modal states
@@ -175,18 +176,8 @@ const LeadsModule = () => {
   const [noteText, setNoteText] = useState('')
   const [selectedLeadNotes, setSelectedLeadNotes] = useState([])
 
-  // Assignment history
-  const [assignmentHistory, setAssignmentHistory] = useState([
-    {
-      id: 1,
-      leadId: 2,
-      action: 'Assigned',
-      from: null,
-      to: 'Sarah Smith',
-      date: '2026-04-19 10:30 AM',
-      assignedBy: 'System (Round Robin)',
-    }
-  ])
+  // Assignment history (dynamically populated from leads table)
+  const [assignmentHistory, setAssignmentHistory] = useState([])
 
   const fetchData = async () => {
     setLoading(true)
@@ -225,6 +216,66 @@ const LeadsModule = () => {
       // Normalize leads
       const normalized = fetchedLeads.map(lead => normalizeLead(lead, agentsList))
       setLeads(normalized)
+
+      // Derive dynamic assignment history from leads that are assigned
+      const allHistoryItems = []
+
+      normalized.forEach(lead => {
+        if (Array.isArray(lead.assignmentHistory) && lead.assignmentHistory.length > 0) {
+          lead.assignmentHistory.forEach(item => {
+            allHistoryItems.push({
+              id: item.id || `assign-${lead.id}-${item.date || Math.random()}`,
+              leadId: lead.id,
+              leadName: lead.name,
+              contactName: lead.contact,
+              action: item.action || 'Assigned',
+              from: item.from || null,
+              to: item.to || lead.assignedTo,
+              date: item.date || (lead.assignedDate ? new Date(lead.assignedDate).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }) : 'Recently'),
+              assignedBy: item.assigned_by || item.assignedBy || 'Admin',
+            })
+          })
+        } else if (lead.assignedTo) {
+          // Fallback for legacy leads without explicit assignment_history in DB
+          const formattedDate = lead.assignedDate
+            ? new Date(lead.assignedDate).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : (lead.created
+                ? new Date(lead.created).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : 'Recently')
+
+          allHistoryItems.push({
+            id: `assign-${lead.id}`,
+            leadId: lead.id,
+            leadName: lead.name,
+            contactName: lead.contact,
+            action: 'Assigned',
+            from: null,
+            to: lead.assignedTo,
+            date: formattedDate,
+            assignedBy: lead.source === 'web_form' ? 'System (Auto Route)' : 'Admin',
+          })
+        }
+      })
+
+      setAssignmentHistory(allHistoryItems)
     } catch (err) {
       console.error('Error fetching CRM data:', err)
       setError(err.message || 'Failed to fetch data from server')
@@ -234,7 +285,9 @@ const LeadsModule = () => {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, sourceFilter, priorityFilter, agentFilter, searchTerm])
 
   const statusBadge = (status) => {
@@ -337,12 +390,20 @@ const LeadsModule = () => {
       const newHistory = leadIdsToAssign.map(leadId => {
         const lead = leads.find(l => l.id === leadId)
         return {
-          id: Date.now() + Math.random(),
+          id: `session-assign-${Date.now()}-${leadId}`,
           leadId,
+          leadName: lead?.name || 'Lead',
+          contactName: lead?.contact || '',
           action: lead?.assignedTo ? 'Reassigned' : 'Assigned',
           from: lead?.assignedTo || null,
           to: agent ? agent.name : 'Unknown Agent',
-          date: new Date().toLocaleString(),
+          date: new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
           assignedBy: 'Admin',
         }
       })
@@ -1291,34 +1352,55 @@ const LeadsModule = () => {
               className="w-full max-w-3xl rounded-lg bg-white p-6 shadow-xl"
             >
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">Assignment History</h2>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Assignment History</h2>
+                  <p className="text-xs text-gray-500">History of assigned leads from the lead management table</p>
+                </div>
                 <button onClick={() => setShowHistoryModal(false)} className="text-gray-400 hover:text-gray-600">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="space-y-3">
-                {assignmentHistory.map((item) => (
-                  <div key={item.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        item.action === 'Assigned' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {item.action}
-                      </span>
-                      <span className="text-xs text-gray-500">{item.date}</span>
+              {assignmentHistory.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <History className="h-10 w-10 text-gray-300 mb-2" />
+                  <p className="text-sm font-medium text-gray-600">No assignment history found</p>
+                  <p className="text-xs text-gray-400 mt-1">Assigned leads from the table will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                  {assignmentHistory.map((item) => (
+                    <div key={item.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4 transition hover:bg-gray-100/70">
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            item.action === 'Assigned' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {item.action}
+                          </span>
+                          {item.leadName && item.leadName !== 'N/A' && (
+                            <span className="text-xs font-semibold text-gray-700 bg-white border border-gray-200 px-2 py-0.5 rounded shadow-xs">
+                              {item.leadName}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500">{item.date}</span>
+                      </div>
+                      <div className="text-sm text-gray-900">
+                        {item.from ? (
+                          <span>From <strong>{item.from}</strong> to <strong>{item.to}</strong></span>
+                        ) : (
+                          <span>Assigned to <strong>{item.to}</strong></span>
+                        )}
+                        {item.contactName && item.contactName !== 'N/A' && (
+                          <span className="text-xs text-gray-500 ml-2">({item.contactName})</span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">By: {item.assignedBy}</div>
                     </div>
-                    <div className="text-sm text-gray-900">
-                      {item.from ? (
-                        <span>From <strong>{item.from}</strong> to <strong>{item.to}</strong></span>
-                      ) : (
-                        <span>Assigned to <strong>{item.to}</strong></span>
-                      )}
-                    </div>
-                    <div className="mt-1 text-xs text-gray-500">By: {item.assignedBy}</div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-4 flex justify-end">
                 <button

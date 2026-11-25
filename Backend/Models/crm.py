@@ -1,6 +1,6 @@
 from beanie import Document
 from pydantic import Field, EmailStr
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 from uuid import UUID, uuid4
 import enum
@@ -102,6 +102,7 @@ class CrmLead(Document):
     # Status & Assignment
     status: LeadStatus = Field(default=LeadStatus.new)
     assigned_to: Optional[UUID] = None # FK to internal users
+    assignment_history: List[Dict[str, Any]] = Field(default_factory=list)
     priority: Optional[Priority] = None
     notes: Optional[str] = None
     deal_value: Optional[float] = Field(default=0.0)
