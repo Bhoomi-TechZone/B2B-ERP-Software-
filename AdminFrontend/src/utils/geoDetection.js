@@ -81,22 +81,26 @@ export function getInitialRegion() {
 export async function fetchAndVerifyRegion() {
   if (typeof window === 'undefined') return null
 
+  // 0. URL test override (e.g. ?region=US)
+  try {
+    const urlParams = new URLSearchParams(window.location.search)
+    const testRegion = (urlParams.get('region') || urlParams.get('country') || '').toUpperCase()
+    if (testRegion && VALID_PRICING_REGIONS.includes(testRegion)) {
+      return testRegion
+    }
+  } catch {}
+
   // If user has explicitly picked a preference in this session, keep it
   const sessionUserChoice = sessionStorage.getItem('user_selected_region')
   if (sessionUserChoice && VALID_PRICING_REGIONS.includes(sessionUserChoice)) {
     return sessionUserChoice
   }
 
-  // Instant check: If timezone offset is -330, visitor is definitely in India
-  if (new Date().getTimezoneOffset() === -330) {
-    return 'IN'
-  }
-
-  // IP Geolocation fallback
+  // IP Geolocation: The definitive check for real network IP & VPNs
   const fetchCountry = async (url, extractCountry) => {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 2000)
+      const timeoutId = setTimeout(() => controller.abort(), 3000)
       const res = await fetch(url, { signal: controller.signal })
       clearTimeout(timeoutId)
       if (!res.ok) return null
@@ -108,9 +112,8 @@ export async function fetchAndVerifyRegion() {
   }
 
   const providers = [
+    { url: 'https://ipwho.is/', fn: (d) => (d.success !== false ? d.country_code : null) },
     { url: 'https://freeipapi.com/api/json', fn: (d) => d.countryCode },
-    { url: 'https://ipapi.co/json/', fn: (d) => d.country_code },
-    { url: 'https://ipwho.is/', fn: (d) => d.country_code },
   ]
 
   let country = null
@@ -119,7 +122,13 @@ export async function fetchAndVerifyRegion() {
     if (country) break
   }
 
-  if (!country) return null
+  if (!country) {
+    // If offline or blocked by extensions, fallback to timezone offset
+    if (new Date().getTimezoneOffset() === -330) {
+      return 'IN'
+    }
+    return null
+  }
 
   country = country.toUpperCase()
   let detectedRegion = 'US'
