@@ -182,14 +182,31 @@ function App() {
     <Routes>
       {/* ── Public ───────────────────────────────────────── */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<LoginPage initialRecoveryOpen={true} />} />
-      <Route path="/registration" element={<ErrorBoundary><RegistrationPage /></ErrorBoundary>} />
-      <Route path="/verify-email" element={<VerifyEmailPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      {/* ── Auth — Canonical Secure Professional URLs ────────────────────── */}
+      {/* Pattern: /auth/<action>?session_token=<opaque>&op=<verb>&ref=<src>&mode=<ctx> */}
+      <Route path="/auth/sign-in"            element={<LoginPage />} />
+      <Route path="/auth/account-recovery"   element={<LoginPage initialRecoveryOpen={true} />} />
+      <Route path="/auth/register"           element={<ErrorBoundary><RegistrationPage /></ErrorBoundary>} />
+      <Route path="/auth/verify-email"       element={<VerifyEmailPage />} />
+      <Route path="/auth/reset-password"     element={<ResetPasswordPage />} />
+      <Route path="/auth/invite/accept"      element={<AcceptInvitePage />} />
+
+      {/* ── Auth — Legacy redirects (backward-compat) ────────────────────── */}
+      <Route path="/login"                   element={<Navigate to="/auth/sign-in?op=authorize&ref=legacy&mode=enterprise" replace />} />
+      <Route path="/auth/login/overview"     element={<Navigate to="/auth/sign-in?op=authorize&ref=legacy&mode=enterprise" replace />} />
+      <Route path="/forgot-password"         element={<Navigate to="/auth/account-recovery?op=recovery&ref=legacy&mode=enterprise" replace />} />
+      <Route path="/auth/forgot-password/overview" element={<Navigate to="/auth/account-recovery?op=recovery&ref=legacy&mode=enterprise" replace />} />
+      <Route path="/registration"            element={<Navigate to="/auth/register?op=register&ref=legacy&mode=new-company" replace />} />
+      <Route path="/auth/register/overview"  element={<Navigate to="/auth/register?op=register&ref=legacy&mode=new-company" replace />} />
+      <Route path="/verify-email"            element={<Navigate to="/auth/verify-email?op=verify&ref=legacy" replace />} />
+      <Route path="/auth/verify-email/overview" element={<Navigate to="/auth/verify-email?op=verify&ref=legacy" replace />} />
+      <Route path="/reset-password"          element={<Navigate to="/auth/reset-password?op=reset&ref=legacy" replace />} />
+      <Route path="/auth/reset-password/overview" element={<Navigate to="/auth/reset-password?op=reset&ref=legacy" replace />} />
+      <Route path="/invite/accept"           element={<Navigate to="/auth/invite/accept?op=accept&ref=legacy" replace />} />
+      <Route path="/accept-invite"           element={<Navigate to="/auth/invite/accept?op=accept&ref=legacy" replace />} />
+      <Route path="/auth/invite/accept/overview" element={<Navigate to="/auth/invite/accept?op=accept&ref=legacy" replace />} />
+
       <Route path="/onboarding" element={<ErrorBoundary><OnboardingPage /></ErrorBoundary>} />
-      <Route path="/invite/accept" element={<AcceptInvitePage />} />
-      <Route path="/accept-invite" element={<AcceptInvitePage />} />
       <Route path="/careers" element={<CareersPage />} />
 
       {/* ── Authenticated ───────────────────────────────── */}
@@ -198,99 +215,189 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<RoleRedirect />} />
 
+          {/* ── Professional URLs (Canonical) ─────────────────── */}
           {/* Admin */}
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/reports" element={<AdminReportsPage />} />
-          <Route path="/admin/users" element={<UserManagementPage />} />
+          <Route path="/admin/dashboard/overview" element={<AdminDashboardPage />} />
+          <Route path="/admin/reports/overview" element={<AdminReportsPage />} />
+          <Route path="/admin/users/overview" element={<UserManagementPage />} />
           <Route path="/admin/users/:id" element={<UserDetailPage />} />
-          <Route path="/super-admin/users" element={<Navigate to="/admin/users" replace />} />
-          <Route path="/super-admin/users/:id" element={<LegacySuperAdminUserRedirect />} />
-          <Route path="/admin/subscription" element={<SubscriptionPage />} />
-          <Route path="/admin/billing" element={<Navigate to="/admin/subscription" replace />} />
-          {/* HR */}
-          <Route path="/hr/dashboard" element={<HRDashboardPage />} />
-          <Route path="/hr/employees" element={<HREmployeesPage />} />
+          <Route path="/admin/settings/overview" element={<PlatformSettingsPage />} />
+          <Route path="/admin/notes/overview" element={<NotesSystemPage />} />
 
-          {/* Manager */}
-          <Route path="/manager/dashboard" element={<ManagerDashboardPage />} />
+          {/* Finance & Payments (User Specification) */}
+          <Route path="/finance/payments/overview" element={<SubscriptionPage />} />
+          <Route path="/finance/billing/overview" element={<SubscriptionPage />} />
+          <Route path="/finance/subscription/overview" element={<SubscriptionPage />} />
 
-          {/* Sales */}
-          <Route path="/sales/dashboard" element={<SalesDashboardPage />} />
-          <Route path="/sales/leads" element={<SalesLeadsPage />} />
-          <Route path="/sales/deals" element={<SalesDealsPage />} />
-
-          {/* Employee self-service */}
-          <Route path="/employee/dashboard" element={<EmployeeDashboardPage />} />
-          <Route path="/my-profile" element={<MyProfilePage />} />
-          <Route path="/my-payroll" element={<EmployeePayrollPage />} />
-          <Route path="/my-documents" element={<EmployeeDocumentsPage />} />
-          <Route path="/my-help-desk" element={<EmployeeHelpDeskPage />} />
-          <Route path="/my-settings" element={<EmployeeSettingsPage />} />
-
-          {/* Custom high-fidelity employee pages */}
-          <Route path="/attendance/my-attendance" element={<MyAttendancePage />} />
-          <Route path="/attendance/my-logs" element={<MyLogsPage />} />
-          <Route path="/attendance/my-requests" element={<MyRequestsPage />} />
-
-
-          {/* Invite-specific roles */}
-          <Route path="/payroll-admin/dashboard" element={<PayrollAdminDashboardPage />} />
-          <Route path="/recruiter/dashboard" element={<RecruiterDashboardPage />} />
-          <Route path="/finance-viewer/dashboard" element={<FinanceViewerDashboardPage />} />
-          <Route path="/it-admin/dashboard" element={<ITAdminDashboardPage />} />
-
-          {/* CRM */}
+          {/* Leads & CRM (User Specification) */}
+          <Route path="/leads/management/overview" element={<CRMPage />} />
+          <Route path="/leads/*" element={<CRMPage />} />
+          <Route path="/crm/leads/overview" element={<CRMPage />} />
+          <Route path="/crm/opportunities/overview" element={<CRMPage />} />
+          <Route path="/crm/deals/overview" element={<CRMPage />} />
+          <Route path="/crm/clients/overview" element={<CRMPage />} />
+          <Route path="/crm/demo-schedule/overview" element={<CRMPage />} />
           <Route path="/crm/*" element={<CRMPage />} />
 
-          {/* Employees (HR) */}
-          <Route path="/employees" element={<EmployeesPage />} />
-          <Route path="/employees/create" element={<AddEmployeePage />} />
-          <Route path="/employees/exit" element={<ExitManagementPage />} />
-          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+          {/* HR Management */}
+          <Route path="/hr/dashboard/overview" element={<HRDashboardPage />} />
+          <Route path="/hr/employees/overview" element={<EmployeesPage />} />
+          <Route path="/hr/employees/create" element={<AddEmployeePage />} />
+          <Route path="/hr/employees/exit/overview" element={<ExitManagementPage />} />
+          <Route path="/hr/employees/:id" element={<EmployeeProfilePage />} />
+          <Route path="/hr/departments/overview" element={<DepartmentsPage />} />
 
-          {/* Departments */}
-          <Route path="/departments" element={<DepartmentsPage />} />
-          <Route path="/notes" element={<NotesSystemPage />} />
-          <Route path="/settings" element={<PlatformSettingsPage />} />
-          <Route path="/announcements" element={<AnnouncementsPage />} />
+          {/* Attendance */}
+          <Route path="/attendance/monitoring/overview" element={<DailyAttendancePage />} />
+          <Route path="/attendance/logs/overview" element={<MonthlyAttendancePage />} />
+          <Route path="/attendance/shifts/overview" element={<ShiftManagementPage />} />
+          <Route path="/attendance/requests/overview" element={<RequestsPage />} />
+          <Route path="/attendance/compliance/overview" element={<AttendanceCompliance />} />
+          <Route path="/attendance/reports/overview" element={<AttendanceReportsPage />} />
+          <Route path="/attendance/biometric/overview" element={<BiometricConfigPage />} />
+          <Route path="/attendance/my-attendance/overview" element={<MyAttendancePage />} />
+          <Route path="/attendance/my-logs/overview" element={<MyLogsPage />} />
+          <Route path="/attendance/my-requests/overview" element={<MyRequestsPage />} />
+
+          {/* Leave Management */}
+          <Route path="/leave/management/overview" element={<LeaveIndex />} />
+          <Route path="/leave/policies/overview" element={<LeaveManagementPage />} />
+          <Route path="/leave/balance/overview" element={<LeaveBalanceIndex />} />
+          <Route path="/leave/apply/overview" element={<LeaveApplyIndex />} />
+          <Route path="/leave/history/overview" element={<LeaveHistoryIndex />} />
+          <Route path="/leave/requests/overview" element={<LeaveManagementPage />} />
+          <Route path="/leave/calendar/overview" element={<LeaveManagementPage />} />
+          <Route path="/leave/shift-rotation/overview" element={<LeaveManagementPage />} />
 
           {/* Payroll – Multi-Region */}
+          <Route path="/payroll/management/overview" element={<Navigate to="/payroll/in/dashboard/overview?ref=sidebar&region=in&tab=dashboard" replace />} />
+          <Route path="/payroll/employee/overview" element={<EmployeePayrollPage />} />
+
+          {/* Recruitment ATS */}
+          <Route path="/recruitment/sources/overview" element={<SourcesPage />} />
+          <Route path="/recruitment/requisitions/overview" element={<RequisitionsPage />} />
+          <Route path="/recruitment/jobs/overview" element={<JobPostingsPage />} />
+          <Route path="/recruitment/candidates/overview" element={<CandidatesRecPage />} />
+          <Route path="/recruitment/pipeline/overview" element={<ApplicationPipelinePage />} />
+          <Route path="/recruitment/interviews/overview" element={<InterviewsPage />} />
+          <Route path="/recruitment/offers/overview" element={<OffersPage />} />
+          <Route path="/recruitment/hired/overview" element={<HiredPage />} />
+
+          {/* Projects & Tasks */}
+          <Route path="/projects/management/overview" element={<ProjectsIndex />} />
+          <Route path="/projects/management/details/:id" element={<ProjectDetailPage />} />
+          <Route path="/tasks/management/overview" element={<MyTasksPage />} />
+          <Route path="/announcements/management/overview" element={<AnnouncementsPage />} />
+
+          {/* Support & Compliance */}
+          <Route path="/compliance/management/overview" element={<CompliancePage />} />
+          <Route path="/support/tickets/overview" element={<TicketsPage />} />
+          <Route path="/support/help-desk/overview" element={<EmployeeHelpDeskPage />} />
+
+          {/* Employee Self-Service */}
+          <Route path="/employee/dashboard/overview" element={<EmployeeDashboardPage />} />
+          <Route path="/employee/profile/overview" element={<MyProfilePage />} />
+          <Route path="/employee/documents/overview" element={<EmployeeDocumentsPage />} />
+          <Route path="/employee/settings/overview" element={<EmployeeSettingsPage />} />
+          <Route path="/employee/notifications/overview" element={<NotificationsPage />} />
+
+          {/* Role Dashboards */}
+          <Route path="/manager/dashboard/overview" element={<ManagerDashboardPage />} />
+          <Route path="/sales/dashboard/overview" element={<SalesDashboardPage />} />
+          <Route path="/sales/leads/overview" element={<SalesLeadsPage />} />
+          <Route path="/sales/deals/overview" element={<SalesDealsPage />} />
+          <Route path="/payroll-admin/dashboard/overview" element={<PayrollAdminDashboardPage />} />
+          <Route path="/recruiter/dashboard/overview" element={<RecruiterDashboardPage />} />
+          <Route path="/finance-viewer/dashboard/overview" element={<FinanceViewerDashboardPage />} />
+          <Route path="/it-admin/dashboard/overview" element={<ITAdminDashboardPage />} />
+
+          {/* ── Legacy Path Redirections (100% Backwards Compatible) ── */}
+          <Route path="/admin/dashboard" element={<Navigate to="/admin/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/admin/reports" element={<Navigate to="/admin/reports/overview?ref=sidebar&tab=summary&page=1" replace />} />
+          <Route path="/admin/users" element={<Navigate to="/admin/users/overview?ref=sidebar&tab=users&status=active&page=1" replace />} />
+          <Route path="/super-admin/users" element={<Navigate to="/admin/users/overview?ref=sidebar&tab=users&status=active&page=1" replace />} />
+          <Route path="/super-admin/users/:id" element={<LegacySuperAdminUserRedirect />} />
+          <Route path="/admin/subscription" element={<Navigate to="/finance/payments/overview?ref=sidebar&tab=invoices&status=all&page=1" replace />} />
+          <Route path="/admin/billing" element={<Navigate to="/finance/payments/overview?ref=sidebar&tab=invoices&status=all&page=1" replace />} />
+          <Route path="/billing" element={<Navigate to="/finance/payments/overview?ref=sidebar&tab=invoices&status=all&page=1" replace />} />
+
+          <Route path="/hr/dashboard" element={<Navigate to="/hr/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/hr/employees" element={<Navigate to="/hr/employees/overview?ref=sidebar&tab=all&status=active&page=1" replace />} />
+          <Route path="/employees" element={<Navigate to="/hr/employees/overview?ref=sidebar&tab=all&status=active&page=1" replace />} />
+          <Route path="/employees/create" element={<Navigate to="/hr/employees/create?ref=sidebar" replace />} />
+          <Route path="/employees/exit" element={<Navigate to="/hr/employees/exit/overview?ref=sidebar&tab=all&status=pending" replace />} />
+          <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+          <Route path="/departments" element={<Navigate to="/hr/departments/overview?ref=sidebar&tab=all&status=active" replace />} />
+
+          <Route path="/manager/dashboard" element={<Navigate to="/manager/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/sales/dashboard" element={<Navigate to="/sales/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/sales/leads" element={<Navigate to="/sales/leads/overview?ref=sidebar&tab=all&status=new" replace />} />
+          <Route path="/sales/deals" element={<Navigate to="/sales/deals/overview?ref=sidebar&tab=all&status=all" replace />} />
+
+          <Route path="/employee/dashboard" element={<Navigate to="/employee/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/my-profile" element={<Navigate to="/employee/profile/overview?ref=sidebar&tab=personal" replace />} />
+          <Route path="/my-payroll" element={<Navigate to="/payroll/employee/overview?ref=sidebar&tab=payslips&page=1" replace />} />
+          <Route path="/my-documents" element={<Navigate to="/employee/documents/overview?ref=sidebar&tab=all" replace />} />
+          <Route path="/my-help-desk" element={<Navigate to="/support/help-desk/overview?ref=sidebar&tab=all" replace />} />
+          <Route path="/my-settings" element={<Navigate to="/employee/settings/overview?ref=sidebar&tab=preferences" replace />} />
+          <Route path="/notifications" element={<Navigate to="/employee/notifications/overview?ref=sidebar&tab=all" replace />} />
+
+          <Route path="/attendance/my-attendance" element={<Navigate to="/attendance/my-attendance/overview?ref=sidebar&tab=my-attendance" replace />} />
+          <Route path="/attendance/my-logs" element={<Navigate to="/attendance/my-logs/overview?ref=sidebar&tab=logs&page=1" replace />} />
+          <Route path="/attendance/my-requests" element={<Navigate to="/attendance/my-requests/overview?ref=sidebar&tab=requests&status=all" replace />} />
+
+          <Route path="/payroll-admin/dashboard" element={<Navigate to="/payroll-admin/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/recruiter/dashboard" element={<Navigate to="/recruiter/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/finance-viewer/dashboard" element={<Navigate to="/finance-viewer/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+          <Route path="/it-admin/dashboard" element={<Navigate to="/it-admin/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+
+          <Route path="/notes" element={<Navigate to="/admin/notes/overview?ref=sidebar&tab=all" replace />} />
+          <Route path="/settings" element={<Navigate to="/admin/settings/overview?ref=sidebar&tab=general" replace />} />
+          <Route path="/announcements" element={<Navigate to="/announcements/management/overview?ref=sidebar&tab=all&page=1" replace />} />
+          <Route path="/compliance" element={<Navigate to="/compliance/management/overview?ref=sidebar&tab=all&status=active" replace />} />
+          <Route path="/tickets" element={<Navigate to="/support/tickets/overview?ref=sidebar&tab=tickets&status=open&page=1" replace />} />
+
+          {/* Payroll Multi-Region Nested */}
           <Route path="/payroll" element={<PayrollLayout />}>
-            {/* Root → India dashboard */}
-            <Route index element={<Navigate to="/payroll/in/dashboard" replace />} />
-
-            {/* India */}
-            <Route path="in" element={<Navigate to="/payroll/in/dashboard" replace />} />
+            <Route index element={<Navigate to="/payroll/in/dashboard/overview?ref=sidebar&region=in&tab=dashboard" replace />} />
+            <Route path="in" element={<Navigate to="/payroll/in/dashboard/overview?ref=sidebar&region=in&tab=dashboard" replace />} />
             <Route path="in/dashboard" element={<InDashboard />} />
+            <Route path="in/dashboard/overview" element={<InDashboard />} />
             <Route path="in/run" element={<InRunPayroll />} />
+            <Route path="in/run/overview" element={<InRunPayroll />} />
             <Route path="in/payslips" element={<InPayslips />} />
+            <Route path="in/payslips/overview" element={<InPayslips />} />
 
-            {/* US */}
-            <Route path="us" element={<Navigate to="/payroll/us/dashboard" replace />} />
+            <Route path="us" element={<Navigate to="/payroll/us/dashboard/overview?ref=sidebar&region=us&tab=dashboard" replace />} />
             <Route path="us/dashboard" element={<UsDashboard />} />
+            <Route path="us/dashboard/overview" element={<UsDashboard />} />
             <Route path="us/run" element={<UsRunPayroll />} />
+            <Route path="us/run/overview" element={<UsRunPayroll />} />
             <Route path="us/payslips" element={<UsPayslips />} />
+            <Route path="us/payslips/overview" element={<UsPayslips />} />
 
-            {/* UK */}
-            <Route path="uk" element={<Navigate to="/payroll/uk/dashboard" replace />} />
+            <Route path="uk" element={<Navigate to="/payroll/uk/dashboard/overview?ref=sidebar&region=uk&tab=dashboard" replace />} />
             <Route path="uk/dashboard" element={<UkDashboard />} />
+            <Route path="uk/dashboard/overview" element={<UkDashboard />} />
             <Route path="uk/run" element={<UkRunPayroll />} />
+            <Route path="uk/run/overview" element={<UkRunPayroll />} />
             <Route path="uk/payslips" element={<UkPayslips />} />
+            <Route path="uk/payslips/overview" element={<UkPayslips />} />
           </Route>
 
-          {/* Leave - HR/Admin & Employee Unified */}
+          {/* Leave Nested */}
           <Route path="/leave" element={<LeaveIndex />} />
-          <Route path="/leave/policies" element={<LeaveManagementPage />} />
-          <Route path="/leave/balance" element={<LeaveBalanceIndex />} />
-          <Route path="/leave/apply" element={<LeaveApplyIndex />} />
-          <Route path="/leave/history" element={<LeaveHistoryIndex />} />
-          <Route path="/leave/requests" element={<LeaveManagementPage />} />
-          <Route path="/leave/calendar" element={<LeaveManagementPage />} />
-          <Route path="/leave/shift-rotation" element={<LeaveManagementPage />} />
+          <Route path="/leave/policies" element={<Navigate to="/leave/policies/overview?ref=sidebar&tab=policies" replace />} />
+          <Route path="/leave/balance" element={<Navigate to="/leave/balance/overview?ref=sidebar&tab=balance" replace />} />
+          <Route path="/leave/apply" element={<Navigate to="/leave/apply/overview?ref=sidebar&tab=apply" replace />} />
+          <Route path="/leave/history" element={<Navigate to="/leave/history/overview?ref=sidebar&tab=history&page=1" replace />} />
+          <Route path="/leave/requests" element={<Navigate to="/leave/requests/overview?ref=sidebar&tab=requests&status=all&page=1" replace />} />
+          <Route path="/leave/calendar" element={<Navigate to="/leave/calendar/overview?ref=sidebar&tab=calendar" replace />} />
+          <Route path="/leave/shift-rotation" element={<Navigate to="/leave/shift-rotation/overview?ref=sidebar&tab=shift-rotation" replace />} />
 
-          {/* Attendance Monitoring (Part 6) */}
+          {/* Attendance Nested */}
           <Route path="/attendance" element={<AttendanceLayout />}>
-            <Route index element={<Navigate to="/attendance/daily" replace />} />
+            <Route index element={<Navigate to="/attendance/monitoring/overview?ref=sidebar&tab=daily&status=all&page=1" replace />} />
             <Route path="daily" element={<DailyAttendancePage />} />
             <Route path="monthly" element={<MonthlyAttendancePage />} />
             <Route path="shifts" element={<ShiftManagementPage />} />
@@ -300,9 +407,9 @@ function App() {
             <Route path="biometric" element={<BiometricConfigPage />} />
           </Route>
 
-          {/* Recruitment ATS */}
+          {/* Recruitment Nested */}
           <Route path="/recruitment" element={<RecruitmentLayout />}>
-            <Route index element={<Navigate to="/recruitment/requisitions" replace />} />
+            <Route index element={<Navigate to="/recruitment/requisitions/overview?ref=sidebar&tab=requisitions&status=all&page=1" replace />} />
             <Route path="sources" element={<SourcesPage />} />
             <Route path="requisitions" element={<RequisitionsPage />} />
             <Route path="jobs" element={<JobPostingsPage />} />
@@ -313,7 +420,7 @@ function App() {
             <Route path="hired" element={<HiredPage />} />
           </Route>
 
-          {/* Projects */}
+          {/* Projects Nested */}
           <Route path="/projects" element={<ProjectsLayout />}>
             <Route index element={<ProjectsIndex />} />
             <Route path=":id" element={<ProjectDetailPage />} />
@@ -322,15 +429,7 @@ function App() {
             <Route index element={<MyTasksPage />} />
           </Route>
 
-          {/* Misc */}
-
-          <Route path="/compliance" element={<CompliancePage />} />
-          <Route path="/tickets" element={<TicketsPage />} />
           <Route path="/onboarding-wizard" element={<OnboardingWizard />} />
-
-          {/* Placeholder routes — point to a known component until real pages land */}
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/billing"       element={<SuperAdminBillingPage />} />
         </Route>
       </Route>
 

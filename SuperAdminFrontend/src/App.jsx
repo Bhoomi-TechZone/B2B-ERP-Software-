@@ -52,31 +52,41 @@ function App() {
     <div className="App">
       <Routes>
         {/* Default redirect to Super Admin */}
-        <Route path="/" element={<Navigate to="/super-admin" replace />} />
+        <Route path="/" element={<Navigate to="/super-admin/dashboard/overview?ref=sidebar&tab=overview" replace />} />
         
         {/* Super Admin Login */}
         <Route path="/super-admin/login" element={<SuperAdminLoginPage />} />
         
-        {/* Protected Super Admin Routes */}
-        <Route path="/super-admin" element={
+        {/* ── Professional Canonical Routes ── */}
+        <Route path="/super-admin/dashboard/overview" element={
           <ProtectedSuperAdminRoute>
             <SuperAdminDashboard />
           </ProtectedSuperAdminRoute>
         } />
-        
-        <Route path="/super-admin/tenants" element={
+
+        <Route path="/super-admin/tenants/overview" element={
           <ProtectedSuperAdminRoute>
             <TenantManagementPage />
           </ProtectedSuperAdminRoute>
         } />
-        
+        <Route path="/tenants/management/overview" element={
+          <ProtectedSuperAdminRoute>
+            <TenantManagementPage />
+          </ProtectedSuperAdminRoute>
+        } />
+
         <Route path="/super-admin/tenants/:id" element={
           <ProtectedSuperAdminRoute>
             <TenantDetailPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/users" element={
+        <Route path="/super-admin/users/overview" element={
+          <ProtectedSuperAdminRoute>
+            <UserManagementPage />
+          </ProtectedSuperAdminRoute>
+        } />
+        <Route path="/users/management/overview" element={
           <ProtectedSuperAdminRoute>
             <UserManagementPage />
           </ProtectedSuperAdminRoute>
@@ -88,43 +98,70 @@ function App() {
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/plans" element={
+        <Route path="/super-admin/plans/overview" element={
+          <ProtectedSuperAdminRoute>
+            <PlansManagementPage />
+          </ProtectedSuperAdminRoute>
+        } />
+        <Route path="/plans/management/overview" element={
           <ProtectedSuperAdminRoute>
             <PlansManagementPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/billing" element={
+        {/* Professional Finance / Payments / Billing */}
+        <Route path="/finance/payments/overview" element={
+          <ProtectedSuperAdminRoute>
+            <BillingPage />
+          </ProtectedSuperAdminRoute>
+        } />
+        <Route path="/finance/billing/overview" element={
+          <ProtectedSuperAdminRoute>
+            <BillingPage />
+          </ProtectedSuperAdminRoute>
+        } />
+        <Route path="/super-admin/billing/overview" element={
           <ProtectedSuperAdminRoute>
             <BillingPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/leads" element={
+        {/* Professional Leads Management */}
+        <Route path="/leads/management/overview" element={
+          <ProtectedSuperAdminRoute>
+            <LeadsManagementPage />
+          </ProtectedSuperAdminRoute>
+        } />
+        <Route path="/super-admin/leads/overview" element={
           <ProtectedSuperAdminRoute>
             <LeadsManagementPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/onboarding" element={
+        <Route path="/super-admin/onboarding/overview" element={
           <ProtectedSuperAdminRoute>
             <OnboardingManagementPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/team" element={
+        <Route path="/super-admin/team/overview" element={
           <ProtectedSuperAdminRoute>
             <SuperAdminTeamPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/settings" element={
+        <Route path="/super-admin/settings/overview" element={
+          <ProtectedSuperAdminRoute>
+            <PlatformSettingsPage />
+          </ProtectedSuperAdminRoute>
+        } />
+        <Route path="/settings/platform/overview" element={
           <ProtectedSuperAdminRoute>
             <PlatformSettingsPage />
           </ProtectedSuperAdminRoute>
         } />
         
-        <Route path="/super-admin/profile" element={
+        <Route path="/super-admin/profile/overview" element={
           <ProtectedSuperAdminRoute>
             <ProfilePage />
           </ProtectedSuperAdminRoute>
@@ -135,9 +172,21 @@ function App() {
             <CreateTenantModal />
           </ProtectedSuperAdminRoute>
         } />
+
+        {/* ── Legacy Redirections (100% Backwards Compatible) ── */}
+        <Route path="/super-admin" element={<Navigate to="/super-admin/dashboard/overview?ref=sidebar&tab=overview" replace />} />
+        <Route path="/super-admin/tenants" element={<Navigate to="/super-admin/tenants/overview?ref=sidebar&tab=all&status=active&page=1" replace />} />
+        <Route path="/super-admin/users" element={<Navigate to="/super-admin/users/overview?ref=sidebar&tab=all&status=active&page=1" replace />} />
+        <Route path="/super-admin/plans" element={<Navigate to="/super-admin/plans/overview?ref=sidebar&tab=plans&status=active" replace />} />
+        <Route path="/super-admin/billing" element={<Navigate to="/finance/payments/overview?ref=sidebar&tab=invoices&status=all&page=1" replace />} />
+        <Route path="/super-admin/leads" element={<Navigate to="/leads/management/overview?ref=sidebar&tab=all&status=new" replace />} />
+        <Route path="/super-admin/onboarding" element={<Navigate to="/super-admin/onboarding/overview?ref=sidebar" replace />} />
+        <Route path="/super-admin/team" element={<Navigate to="/super-admin/team/overview?ref=sidebar" replace />} />
+        <Route path="/super-admin/settings" element={<Navigate to="/super-admin/settings/overview?ref=sidebar&tab=general" replace />} />
+        <Route path="/super-admin/profile" element={<Navigate to="/super-admin/profile/overview?ref=sidebar" replace />} />
         
-        {/* Catch all route - redirect to super admin */}
-        <Route path="*" element={<Navigate to="/super-admin" replace />} />
+        {/* Catch all route - redirect to super admin overview */}
+        <Route path="*" element={<Navigate to="/super-admin/dashboard/overview?ref=sidebar&tab=overview" replace />} />
       </Routes>
     </div>
   )

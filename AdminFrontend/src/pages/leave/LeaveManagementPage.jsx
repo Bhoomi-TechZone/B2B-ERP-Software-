@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import {
   FileText, BarChart2, PlusCircle, ClipboardList, CalendarDays,
   Umbrella, RefreshCw, Clock, Users, ArrowRightLeft
@@ -20,17 +20,18 @@ import CalendarPage from './components/CalendarPage'
 const FLOW = ['Policy', 'Assignment', 'Balance', 'Request', 'Approval', 'Attendance', 'Payroll']
 
 const TABS = [
-  { id: 'policies', label: 'Policies', path: '/leave/policies', icon: FileText },
-  { id: 'balance', label: 'Balance', path: '/leave/balance', icon: BarChart2 },
-  // { id: 'apply', label: 'Apply Leave', path: '/leave/apply', icon: PlusCircle },
-  { id: 'requests', label: 'Requests', path: '/leave/requests', icon: ClipboardList },
-  { id: 'calendar', label: 'Calendar', path: '/leave/calendar', icon: CalendarDays },
-  { id: 'shift-rotation', label: 'Shift Rotation', path: '/leave/shift-rotation', icon: ArrowRightLeft },
+  { id: 'policies', label: 'Policies', path: '/leave/policies/overview?ref=sidebar&tab=policies', icon: FileText },
+  { id: 'balance', label: 'Balance', path: '/leave/balance/overview?ref=sidebar&tab=balance', icon: BarChart2 },
+  // { id: 'apply', label: 'Apply Leave', path: '/leave/apply/overview?ref=sidebar&tab=apply', icon: PlusCircle },
+  { id: 'requests', label: 'Requests', path: '/leave/requests/overview?ref=sidebar&tab=requests&status=all&page=1', icon: ClipboardList },
+  { id: 'calendar', label: 'Calendar', path: '/leave/calendar/overview?ref=sidebar&tab=calendar', icon: CalendarDays },
+  { id: 'shift-rotation', label: 'Shift Rotation', path: '/leave/shift-rotation/overview?ref=sidebar&tab=shift-rotation', icon: ArrowRightLeft },
 ]
 
 export default function LeaveManagementPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user, role: authRole } = useAuth()
 
   const role = authRole ?? localStorage.getItem("role") ?? "employee"
@@ -45,8 +46,12 @@ export default function LeaveManagementPage() {
   })
   const [loading, setLoading] = useState(true)
 
-  // Determine active tab from path
+  // Determine active tab from query params or path
   const getActiveTabFromPath = () => {
+    const qTab = searchParams.get('tab')
+    if (qTab && ['policies', 'balance', 'apply', 'requests', 'calendar', 'shift-rotation'].includes(qTab)) {
+      return qTab
+    }
     const path = location.pathname
     if (path.includes('policies')) return 'policies'
     if (path.includes('balance')) return 'balance'
@@ -183,9 +188,8 @@ export default function LeaveManagementPage() {
         <div className="flex items-center gap-0 overflow-x-auto px-6 pb-3 [&::-webkit-scrollbar]:hidden">
           {FLOW.map((step, i) => (
             <div key={step} className="flex items-center shrink-0">
-              <div className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                i <= flowIdx ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
-              }`}>
+              <div className={`rounded-full px-3 py-1 text-[11px] font-semibold ${i <= flowIdx ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
+                }`}>
                 {step}
               </div>
               {i < FLOW.length - 1 && (
@@ -201,11 +205,10 @@ export default function LeaveManagementPage() {
             <button
               key={tab.id}
               onClick={() => handleTabChange(tab)}
-              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
-                activeTab === tab.id
+              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${activeTab === tab.id
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-slate-500 hover:text-slate-800'
-              }`}
+                }`}
             >
               <tab.icon className="h-4 w-4" />
               {tab.label}
@@ -269,10 +272,10 @@ function ShiftRotationPage() {
           attendanceService.getWeeklyRoster(monday),
           employeeService.getEmployees(1, 1000)
         ])
-        
+
         setShifts(Array.isArray(shiftsData) ? shiftsData : [])
         setRoster(rosterData)
-        
+
         // Handle employee data structure
         if (Array.isArray(employeesData)) {
           setEmployees(employeesData)
@@ -295,8 +298,8 @@ function ShiftRotationPage() {
     if (!shiftId) return { name: 'OFF', timing: '' }
     const s = shifts.find(item => String(item.id || item._id) === String(shiftId))
     if (s) {
-      return { 
-        name: s.name, 
+      return {
+        name: s.name,
         timing: `${s.start_time} - ${s.end_time}`,
         fullName: `${s.name} (${s.start_time} - ${s.end_time})`
       }
@@ -307,7 +310,7 @@ function ShiftRotationPage() {
   const getShiftDetails = (employee) => {
     // First check if employee has a default_shift_id in custom_fields_json
     const defaultShiftId = employee.custom_fields_json?.default_shift_id
-    
+
     if (defaultShiftId) {
       const shift = getShiftName(defaultShiftId)
       return {
@@ -321,49 +324,49 @@ function ShiftRotationPage() {
         hasShift: true
       }
     }
-    
+
     // Fallback to roster-based assignment (for rotational shifts)
     if (!roster || !roster.assignments || roster.assignments.length === 0) {
-      return { 
-        current: 'Not Assigned', 
+      return {
+        current: 'Not Assigned',
         currentName: 'Not Assigned',
         currentTiming: '',
-        next: 'Not Assigned', 
+        next: 'Not Assigned',
         nextName: 'Not Assigned',
         nextTiming: '',
-        nextDate: 'N/A', 
-        hasShift: false 
+        nextDate: 'N/A',
+        hasShift: false
       }
     }
-    
-    const assignment = roster.assignments.find(a => 
+
+    const assignment = roster.assignments.find(a =>
       String(a.employee_id) === String(employee.id)
     )
-    
+
     if (!assignment || !assignment.schedule) {
-      return { 
-        current: 'Not Assigned', 
+      return {
+        current: 'Not Assigned',
         currentName: 'Not Assigned',
         currentTiming: '',
-        next: 'Not Assigned', 
+        next: 'Not Assigned',
         nextName: 'Not Assigned',
         nextTiming: '',
-        nextDate: 'N/A', 
-        hasShift: false 
+        nextDate: 'N/A',
+        hasShift: false
       }
     }
-    
+
     // Find today's day offset (0 = Monday, 6 = Sunday)
     const today = new Date()
     let todayOffset = today.getDay() - 1 // getDay() is 0 (Sun) to 6 (Sat)
     if (todayOffset < 0) todayOffset = 6 // Map Sunday to 6
-    
+
     const todaySched = assignment.schedule[todayOffset] || assignment.schedule[String(todayOffset)]
     let currentShift = { name: 'Weekly OFF', timing: '', fullName: 'Weekly OFF' }
     if (todaySched && !todaySched.is_holiday && !todaySched.is_leave && todaySched.shift_id) {
       currentShift = getShiftName(todaySched.shift_id)
     }
-      
+
     // Find next day's shift
     const nextOffset = (todayOffset + 1) % 7
     const nextSched = assignment.schedule[nextOffset] || assignment.schedule[String(nextOffset)]
@@ -371,11 +374,11 @@ function ShiftRotationPage() {
     if (nextSched && !nextSched.is_holiday && !nextSched.is_leave && nextSched.shift_id) {
       nextShift = getShiftName(nextSched.shift_id)
     }
-      
+
     const tomorrow = new Date()
     tomorrow.setDate(today.getDate() + 1)
     const nextDateStr = tomorrow.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-    
+
     return {
       current: currentShift.fullName || currentShift.name,
       currentName: currentShift.name,
@@ -391,14 +394,14 @@ function ShiftRotationPage() {
   // Calculate dynamic stats from real data
   const activeRotationsCount = shifts.length
   const employeesRotatedCount = roster?.assignments?.length || 0
-  
+
   // Count employees who have shifts assigned (either via custom_fields or roster)
   const employeesWithShifts = employees.filter(emp => {
     const hasDefaultShift = emp.custom_fields_json?.default_shift_id
     const hasRosterShift = roster?.assignments?.some(a => String(a.employee_id) === String(emp.id))
     return hasDefaultShift || hasRosterShift
   }).length
-  
+
   const upcomingChangesCount = Math.max(0, Math.round(employeesRotatedCount / 2))
 
   // Generate table rows from real employees

@@ -20,13 +20,13 @@ import { API_V1_BASE_URL } from '../../config/api'
 
 /* ─── Tab configuration ─────────────────────────────────────────── */
 const SUB_TABS = [
-  { path: '/attendance/daily',      label: 'Live Monitor',    icon: CalendarDays  },
-  { path: '/attendance/monthly',    label: 'Monthly Logs',    icon: CalendarRange },
-  { path: '/attendance/shifts',     label: 'Shifts & Roster', icon: Clock         },
-  { path: '/attendance/requests',   label: 'Regularization',  icon: ClipboardList },
-  { path: '/attendance/compliance', label: 'OT Compliance',   icon: ShieldCheck   },
-  { path: '/attendance/reports',    label: 'Reports',         icon: FileBarChart2 },
-  { path: '/attendance/biometric',  label: 'Integrations',    icon: Fingerprint   },
+  { path: '/attendance/monitoring/overview?ref=sidebar&tab=daily&status=all&page=1', label: 'Live Monitor',    icon: CalendarDays,  key: 'daily' },
+  { path: '/attendance/logs/overview?ref=sidebar&tab=monthly&status=all&page=1',    label: 'Monthly Logs',    icon: CalendarRange, key: 'monthly' },
+  { path: '/attendance/shifts/overview?ref=sidebar&tab=roster&status=active',       label: 'Shifts & Roster', icon: Clock,         key: 'shifts' },
+  { path: '/attendance/requests/overview?ref=sidebar&tab=requests&status=all&page=1', label: 'Regularization',  icon: ClipboardList, key: 'requests' },
+  { path: '/attendance/compliance/overview?ref=sidebar&tab=compliance&status=all', label: 'OT Compliance',   icon: ShieldCheck,   key: 'compliance' },
+  { path: '/attendance/reports/overview?ref=sidebar&tab=reports',                  label: 'Reports',         icon: FileBarChart2, key: 'reports' },
+  { path: '/attendance/biometric/overview?ref=sidebar&tab=config',                 label: 'Integrations',    icon: Fingerprint,   key: 'biometric' },
 ]
 
 /* ─── Avatar color pool ─────────────────────────────────────────── */
@@ -410,7 +410,7 @@ const AttendanceLayout = memo(() => {
   }
 
   /* ── Is Live Monitor tab active ── */
-  const isLiveMonitor = activePath === '/attendance/daily' || activePath === '/attendance'
+  const isLiveMonitor = activePath === '/attendance/daily' || activePath === '/attendance' || activePath.startsWith('/attendance/monitoring')
 
   /* ── Fetch departments ── */
   const fetchDepartments = useCallback(async () => {
@@ -710,7 +710,8 @@ const AttendanceLayout = memo(() => {
         {/* ── Sub-Tab Navigation ── */}
         <div className="mt-3 flex overflow-x-auto [&::-webkit-scrollbar]:hidden">
           {SUB_TABS.map(tab => {
-            const active = activePath === tab.path || (activePath.startsWith(tab.path) && tab.path !== '/attendance/daily')
+            const cleanTarget = tab.path.split('?')[0]
+            const active = activePath === cleanTarget || activePath.startsWith(cleanTarget + '/') || (cleanTarget.includes('monitoring') && activePath === '/attendance/daily')
             return (
               <button
                 key={tab.path}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import {
   DollarSign, TrendingUp, CreditCard, FileText, Download,
@@ -8,11 +9,30 @@ import SuperAdminTopBar from '../../components/TopBar'
 import superAdminService from '../../../services/superAdminService'
 
 export default function BillingPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialTab = searchParams.get('tab') || 'overview'
+
   const [billingStats, setBillingStats] = useState({})
   const [invoices, setInvoices] = useState([])
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTabState] = useState(initialTab)
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab)
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev)
+      next.set('tab', tab)
+      return next
+    })
+  }
+
+  useEffect(() => {
+    const qTab = searchParams.get('tab')
+    if (qTab && qTab !== activeTab) {
+      setActiveTabState(qTab)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchBillingData()
@@ -26,7 +46,7 @@ export default function BillingPage() {
         superAdminService.getInvoices(),
         superAdminService.getPayments()
       ])
-      
+
       setBillingStats(statsData || {})
       setInvoices(Array.isArray(invoicesData) ? invoicesData : (invoicesData?.invoices || []))
       setPayments(Array.isArray(paymentsData) ? paymentsData : (paymentsData?.payments || []))
@@ -70,7 +90,7 @@ export default function BillingPage() {
   return (
     <div className="min-h-screen bg-[#f0f5ff]">
       <SuperAdminTopBar />
-      
+
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -195,11 +215,10 @@ export default function BillingPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors relative ${
-                    activeTab === tab.id
+                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors relative ${activeTab === tab.id
                       ? 'text-[#1251C5] bg-[#f0f5ff]'
                       : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
@@ -333,11 +352,10 @@ function InvoicesTab({ invoices, loading }) {
                   <td className="py-3 px-4">{invoice.customer_name || 'Unknown'}</td>
                   <td className="py-3 px-4 font-semibold">${invoice.amount || '0'}</td>
                   <td className="py-3 px-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                      invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
+                        invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                      }`}>
                       {invoice.status || 'pending'}
                     </span>
                   </td>
@@ -398,11 +416,10 @@ function PaymentsTab({ payments, loading }) {
                   <td className="py-3 px-4 font-semibold">${payment.amount || '0'}</td>
                   <td className="py-3 px-4">{payment.method || 'Card'}</td>
                   <td className="py-3 px-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      payment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      payment.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${payment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        payment.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                      }`}>
                       {payment.status || 'completed'}
                     </span>
                   </td>

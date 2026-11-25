@@ -11,7 +11,7 @@ const CRMPage = () => {
   // Render content based on URL path
   const renderContent = () => {
     // Leads section (with subsections handled by LeadsPage)
-    if (path.startsWith('/crm/leads') || path === '/crm') {
+    if (path.startsWith('/crm/leads') || path === '/crm' || path.startsWith('/leads/management') || path.startsWith('/leads')) {
       return <LeadsPage />
     }
 

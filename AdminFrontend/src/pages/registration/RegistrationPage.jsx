@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { buildSignInUrl } from '../../utils/authSession'
 import authService from '../../services/authService'
 import onboardingService from '../../services/onboardingService'
 import plansService from '../../services/plansService'
@@ -53,7 +54,7 @@ export default function RegistrationPage() {
             navigate('/onboarding', { replace: true })
           } else if (progress && progress.is_completed) {
             // User has completed onboarding - redirect to login
-            navigate('/login', { replace: true })
+            navigate(buildSignInUrl({ ref: 'register', op: 'authorize', mode: 'enterprise' }), { replace: true })
           }
         } catch {
           // Token invalid or expired, continue with registration
@@ -251,3 +252,4 @@ export default function RegistrationPage() {
     </main>
   )
 }
+

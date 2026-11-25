@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, memo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Search, SlidersHorizontal, UserPlus, Users, TrendingUp, UserCheck,
   UserX, Clock, ChevronLeft, ChevronRight, MoreVertical, Eye, Pencil,
@@ -490,9 +490,16 @@ ActionMenu.displayName = 'ActionMenu'
 
 const EmployeesPage = memo(() => {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { departments } = useDepartments()
   const { roles } = useRoles()
   const { tenant, refreshProfile, session } = useAuth()
+
+  const initialTab = searchParams.get('tab') === 'invites' ? 'invites' : 'employees'
+  const initialStatus = searchParams.get('status')
+    ? (searchParams.get('status').toLowerCase() === 'all' ? 'All' : searchParams.get('status'))
+    : 'All'
+  const initialPage = parseInt(searchParams.get('page') || '1', 10) || 1
 
   const canWriteEmployees = useMemo(() => {
     const roleLower = (session?.role || session?.user?.role || session?.user?.user_type || '').toLowerCase();
@@ -500,7 +507,7 @@ const EmployeesPage = memo(() => {
     if (roleLower === 'tenant_admin') return true;
     return session?.user?.userModules?.employees?.write === true;
   }, [session]);
-  const [activeTab, setActiveTab] = useState('employees') // employees | invites
+  const [activeTab, setActiveTab] = useState(initialTab) // employees | invites
   const [employees, setEmployees] = useState([])
   const [totalEmployeesCount, setTotalEmployeesCount] = useState(0)
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(true)
@@ -508,9 +515,9 @@ const EmployeesPage = memo(() => {
   const [search, setSearch] = useState('')
   const [filterDept, setFilterDept] = useState('All')
   const [filterRole, setFilterRole] = useState('All')
-  const [filterStatus, setFilterStatus] = useState('All')
+  const [filterStatus, setFilterStatus] = useState(initialStatus)
   const [selectedIds, setSelectedIds] = useState(new Set())
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(initialPage)
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
