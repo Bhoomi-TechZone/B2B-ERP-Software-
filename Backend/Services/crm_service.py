@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import logging
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from Models.crm import (
     CrmLead, CrmOpportunity, CrmTask, CrmActivity, CrmProposal, CrmClient,
@@ -47,6 +47,19 @@ class CrmService:
         
     @staticmethod
     async def create_manual_lead(data: LeadManualCreateRequest, created_by: UUID, tenant_id: UUID) -> CrmLead:
+        initial_history = []
+        if data.assigned_to:
+            agent = await User.find_one(User.id == data.assigned_to)
+            agent_name = f"{agent.first_name} {agent.last_name}".strip() if agent else "Sales Agent"
+            initial_history.append({
+                "id": str(uuid4()),
+                "action": "Assigned",
+                "from": None,
+                "to": agent_name,
+                "date": datetime.utcnow().strftime("%b %d, %Y, %I:%M %p"),
+                "assigned_by": "Admin"
+            })
+
         lead = CrmLead(
             tenant_id=tenant_id,
             first_name=data.first_name,
@@ -60,6 +73,7 @@ class CrmService:
             source=data.source,
             priority=data.priority,
             assigned_to=data.assigned_to,
+            assignment_history=initial_history,
             notes=data.notes,
             status=LeadStatus.new,
             deal_value=data.deal_value if data.deal_value is not None else (data.estimated_value or 0.0),
@@ -361,9 +375,39 @@ class CrmService:
     @staticmethod
     async def assign_leads(lead_ids: List[UUID], assigned_to: Optional[UUID], tenant_id: UUID) -> List[CrmLead]:
         updated_leads = []
+        new_agent = await User.find_one(User.id == assigned_to) if assigned_to else None
+        new_agent_name = f"{new_agent.first_name} {new_agent.last_name}".strip() if new_agent else "Unassigned"
+
         for lead_id in lead_ids:
             lead = await CrmLead.find_one(CrmLead.id == lead_id, CrmLead.tenant_id == tenant_id)
             if lead:
+                if lead.assignment_history is None:
+                    lead.assignment_history = []
+
+                old_assigned_to = lead.assigned_to
+
+                if old_assigned_to:
+                    old_agent = await User.find_one(User.id == old_assigned_to)
+                    old_agent_name = f"{old_agent.first_name} {old_agent.last_name}".strip() if old_agent else "Previous Agent"
+
+                    lead.assignment_history.insert(0, {
+                        "id": str(uuid4()),
+                        "action": "Reassigned",
+                        "from": old_agent_name,
+                        "to": new_agent_name,
+                        "date": datetime.utcnow().strftime("%b %d, %Y, %I:%M %p"),
+                        "assigned_by": "Admin"
+                    })
+                elif not old_assigned_to and assigned_to:
+                    lead.assignment_history.insert(0, {
+                        "id": str(uuid4()),
+                        "action": "Assigned",
+                        "from": None,
+                        "to": new_agent_name,
+                        "date": datetime.utcnow().strftime("%b %d, %Y, %I:%M %p"),
+                        "assigned_by": "Admin"
+                    })
+
                 lead.assigned_to = assigned_to
                 lead.updated_at = datetime.utcnow()
                 await lead.save()
