@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        document.body.innerHTML = 
+          '<div style="padding:20px;background:#ffebee;color:#c62828;font-family:sans-serif;">' +
+          '<h2>Global Error Caught!</h2>' +
+          '<p><b>Message:</b> ' + message + '</p>' +
+          '<p><b>Source:</b> ' + source + ':' + lineno + ':' + colno + '</p>' +
+          '<pre style="background:#fff;padding:10px;border:1px solid #ef9a9a;">' + (error && error.stack ? error.stack : '') + '</pre>' +
+          '</div>';
+      };
+      window.addEventListener('unhandledrejection', function(event) {
+        document.body.innerHTML = 
+          '<div style="padding:20px;background:#ffebee;color:#c62828;font-family:sans-serif;">' +
+          '<h2>Unhandled Promise Rejection!</h2>' +
+          '<p><b>Reason:</b> ' + event.reason + '</p>' +
+          '<pre style="background:#fff;padding:10px;border:1px solid #ef9a9a;">' + (event.reason && event.reason.stack ? event.reason.stack : '') + '</pre>' +
+          '</div>';
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
