@@ -339,13 +339,6 @@
     "@tailwindcss/oxide" "4.3.0"
     tailwindcss "4.3.0"
 
-"@tybys/wasm-util@^0.10.3":
-  version "0.10.4"
-  resolved "https://registry.npmjs.org/@tybys/wasm-util/-/wasm-util-0.10.4.tgz"
-  integrity sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==
-  dependencies:
-    tslib "^2.4.0"
-
 "@types/estree@^1.0.6":
   version "1.0.9"
   resolved "https://registry.npmmirror.com/@types/estree/-/estree-1.0.9.tgz"
@@ -914,6 +907,11 @@ graceful-fs@^4.2.4:
   version "4.2.11"
   resolved "https://registry.npmmirror.com/graceful-fs/-/graceful-fs-4.2.11.tgz"
   integrity sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==
+
+gsap@^3.15.1:
+  version "3.15.1"
+  resolved "https://registry.npmjs.org/gsap/-/gsap-3.15.1.tgz"
+  integrity sha512-63yjWRFWj3QRP1UOuD8kcidCcy3nxb1mMRpwHr/xJRvPfm9GtWOXFAYUiL0ro1fgPq2nY53LR+98pAgy9BumBg==
 
 has-flag@^4.0.0:
   version "4.0.0"
