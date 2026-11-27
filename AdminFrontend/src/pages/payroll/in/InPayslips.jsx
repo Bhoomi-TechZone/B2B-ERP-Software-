@@ -5,6 +5,7 @@ import { formatINR, DEPT_TEXT_COLORS } from '../data/payrollData'
 import PayStatusBadge from '../components/PayStatusBadge'
 import PaySkeletonRow from '../components/PaySkeletonRow'
 import payrollService from '../../../services/payrollService'
+import { API_BASE_URL } from '../../../config/api'
 
 const STATUSES = ['All', 'Processed', 'Failed']
 
@@ -156,8 +157,7 @@ const InPayslips = () => {
   window.handleDownloadPayslip = async (slip) => {
     try {
       const token = localStorage.getItem('access_token')
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
-      const response = await fetch(`${apiUrl}/api/payroll/payslips/IN/${slip.id || slip.slip_id}/download`, {
+      const response = await fetch(`${API_BASE_URL}/payroll/payslips/IN/${slip.id || slip.slip_id}/download`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) {

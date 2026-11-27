@@ -1,11 +1,5 @@
 import axios from 'axios'
-import { API_BASE_URL as CONFIG_API_BASE } from '../config/api'
-
-// Strip trailing /api so endpoints like /api/holidays work properly on both local and production
-const API_ROOT = (CONFIG_API_BASE || '').replace(/\/api\/?$/, '') ||
-  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:8000'
-    : 'https://b2bbackend.btplsoft.com')
+import { API_ROOT, API_BASE_URL } from '../config/api'
 
 // Create axios instance with default config
 const api = axios.create({

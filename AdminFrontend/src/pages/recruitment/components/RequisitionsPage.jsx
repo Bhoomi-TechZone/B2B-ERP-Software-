@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Plus, Search, Check, X, Building2, Hash, Clock, Eye, AlertCircle } from 'lucide-react'
 import { getRequisitions, createRequisition, updateStatus } from '../data/recruitmentData'
+import { BACKEND_URL } from '../../../config/api'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const DEPT_OPTIONS = ['All', 'Engineering', 'Product', 'Design', 'Sales', 'Analytics', 'HR', 'Marketing']
@@ -149,7 +150,7 @@ export default function RequisitionsPage() {
       setReqs(list)
     } catch (err) {
       const msg = err.code === 'ERR_NETWORK'
-        ? 'Backend server se connection nahi ho pa raha (https://b2bbackend.btplsoft.com). Server chal raha hai?'
+        ? `Backend server se connection nahi ho pa raha (${BACKEND_URL}). Server chal raha hai?`
         : `Data load nahi hua: ${err.response?.data?.detail ?? err.message}`
       setError(msg)
     } finally {

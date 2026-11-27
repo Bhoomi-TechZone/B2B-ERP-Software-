@@ -9,6 +9,7 @@ import {
   PRIORITY_CONFIG, STATUS_CONFIG
 } from '../data/mockData'
 import pmService from '../../../services/pmService'
+import { BACKEND_URL } from '../../../config/api'
 
 const spring = { type: 'spring', stiffness: 350, damping: 26 }
 
@@ -295,7 +296,7 @@ const TaskDetailModal = memo(({ taskId, task: propTask, projects = [], members =
                     {getFileIcon(att.type)}
                     <div className="min-w-0 flex-1">
                       <a 
-                        href={`https://b2bbackend.btplsoft.com${att.url}`} 
+                        href={`${BACKEND_URL}${att.url}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="truncate text-xs font-semibold text-blue-600 hover:underline block"

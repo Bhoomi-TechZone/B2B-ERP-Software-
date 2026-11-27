@@ -5,6 +5,7 @@ import {
   QrCode, Zap, ShieldCheck, Server, Plus,
   Settings2, Activity, Terminal, Code
 } from 'lucide-react'
+import { API_V1_BASE_URL } from '../../config/api'
 
 const INTEGRATIONS = [
   {
@@ -130,7 +131,7 @@ export default function BiometricConfigPage() {
                          <div>
                             <label className="block text-xs font-bold text-slate-600 mb-1.5">API Endpoint URL</label>
                             <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-mono text-slate-500">
-                               https://api.hrms.com/v1/attendance/{selected.id}
+                               {API_V1_BASE_URL}/attendance/{selected.id}
                             </div>
                          </div>
 

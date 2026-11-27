@@ -1,6 +1,7 @@
 import { memo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
+import { API_BASE_URL } from '../../../config/api'
 import PayrollRunStepper from '../components/PayrollRunStepper'
 import Step1LockPeriod from '../components/Step1LockPeriod'
 import Step2Earnings from '../components/Step2Earnings'
@@ -29,7 +30,7 @@ const InRunPayroll = memo(() => {
         const token = localStorage.getItem('token')
         
         // Fetch all employees
-        const empResponse = await fetch('https://b2bbackend.btplsoft.com/api/employees/?per_page=1000', {
+        const empResponse = await fetch(`${API_BASE_URL}/employees/?per_page=1000`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -40,7 +41,7 @@ const InRunPayroll = memo(() => {
         const empData = await empResponse.json()
         
         // Fetch payroll configs for UK
-        const configResponse = await fetch('https://b2bbackend.btplsoft.com/api/payroll/config/UK', {
+        const configResponse = await fetch(`${API_BASE_URL}/payroll/config/UK`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -124,7 +125,7 @@ const InRunPayroll = memo(() => {
       const token = localStorage.getItem('token')
       
       // Update earnings via API
-      const response = await fetch(`https://b2bbackend.btplsoft.com/api/payroll/earnings/${empId}`, {
+      const response = await fetch(`${API_BASE_URL}/payroll/earnings/${empId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

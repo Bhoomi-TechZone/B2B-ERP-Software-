@@ -6,7 +6,7 @@ import apiClient from './apiClient'
  * Handles all API calls for super admin functionality
  */
 
-const API_V1_SUPERADMIN = `${API_BASE_URL}/v1/superadmin`
+const API_V1_SUPERADMIN = `${API_V1_BASE_URL}/superadmin`
 
 const superAdminService = {
   // ── Dashboard Data ──────────────────────────────────────────────────────────
