@@ -2,13 +2,15 @@
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
 
-export const API_BASE_URL = isLocalhost 
-  ? 'http://localhost:8000/api'
-  : 'https://b2bbackend.btplsoft.com/api'
+export const BACKEND_URL = isLocalhost 
+  ? 'http://localhost:8000'
+  : 'https://b2bbackend.btplsoft.com'
 
-export const API_V1_BASE_URL = isLocalhost 
-  ? 'http://localhost:8000/api/v1'
-  : 'https://b2bbackend.btplsoft.com/api/v1'
+export const API_ROOT = BACKEND_URL
+
+export const API_BASE_URL = `${BACKEND_URL}/api`
+
+export const API_V1_BASE_URL = `${API_BASE_URL}/v1`
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -60,4 +62,12 @@ export const API_ENDPOINTS = {
   PLANS: {
     LIST: `${API_V1_BASE_URL}/plans`,
   },
+}
+
+export default {
+  BACKEND_URL,
+  API_ROOT,
+  API_BASE_URL,
+  API_V1_BASE_URL,
+  API_ENDPOINTS,
 }

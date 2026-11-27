@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_BASE_URL } from "../../../config/api";
 
 const API = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL || "https://b2bbackend.btplsoft.com"}/api`,
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "69420",
@@ -26,7 +27,7 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.code === "ERR_NETWORK" || error.code === "ECONNREFUSED") {
-      console.error(`❌ Backend server chal nahi raha (${import.meta.env.VITE_API_BASE_URL || "https://b2bbackend.btplsoft.com"})`);
+      console.error(`❌ Backend server chal nahi raha (${API_BASE_URL})`);
     } else if (error.response?.status === 401) {
       console.error("❌ Unauthorized - token invalid ya expire ho gaya");
       localStorage.removeItem("access_token");

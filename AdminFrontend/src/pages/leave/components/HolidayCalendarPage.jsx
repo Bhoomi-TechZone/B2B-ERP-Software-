@@ -13,13 +13,7 @@ import {
   Loader2,
 } from 'lucide-react'
 
-import { API_BASE_URL as CONFIG_API_BASE } from '../../../../config/api'
-
-// Strip trailing /api so endpoints work on both local and production
-const API_ROOT = (CONFIG_API_BASE || '').replace(/\/api\/?$/, '') ||
-  (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? 'http://localhost:8000'
-    : 'https://b2bbackend.btplsoft.com')
+import { API_ROOT } from '../../../../config/api'
 
 const api = axios.create({
   baseURL: API_ROOT,

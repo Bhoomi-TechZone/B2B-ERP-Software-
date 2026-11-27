@@ -8,9 +8,8 @@ import { ROLE_IDS } from './config/roles'
 
 // ── Public ─────────────────────────────────────────────────────────────────
 import LandingPage from './pages/LandingPage'
-import RegistrationPage from './pages/registration/RegistrationPage'
+import AuthPage from './components/website/auth/AuthPage'
 import VerifyEmailPage from './pages/registration/VerifyEmailPage'
-import LoginPage from './pages/auth/LoginPage'
 import AcceptInvitePage from './pages/auth/AcceptInvitePage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import CareersPage from './pages/public/CareersPage'
@@ -183,10 +182,9 @@ function App() {
       {/* ── Public ───────────────────────────────────────── */}
       <Route path="/" element={<LandingPage />} />
       {/* ── Auth — Canonical Secure Professional URLs ────────────────────── */}
-      {/* Pattern: /auth/<action>?session_token=<opaque>&op=<verb>&ref=<src>&mode=<ctx> */}
-      <Route path="/auth/sign-in"            element={<LoginPage />} />
-      <Route path="/auth/account-recovery"   element={<LoginPage initialRecoveryOpen={true} />} />
-      <Route path="/auth/register"           element={<ErrorBoundary><RegistrationPage /></ErrorBoundary>} />
+      <Route path="/auth/sign-in"            element={<AuthPage initialView="signin" />} />
+      <Route path="/auth/account-recovery"   element={<AuthPage initialView="signin" />} />
+      <Route path="/auth/register"           element={<ErrorBoundary><AuthPage initialView="register" /></ErrorBoundary>} />
       <Route path="/auth/verify-email"       element={<VerifyEmailPage />} />
       <Route path="/auth/reset-password"     element={<ResetPasswordPage />} />
       <Route path="/auth/invite/accept"      element={<AcceptInvitePage />} />

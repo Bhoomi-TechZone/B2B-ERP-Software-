@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { BrandingProvider } from './context/BrandingContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 console.log('🚀 main.jsx: Script executing...')
@@ -25,7 +26,9 @@ try {
         <BrowserRouter>
           <AuthProvider>
             <BrandingProvider>
-              <App />
+              <ThemeProvider>
+                <App />
+              </ThemeProvider>
             </BrandingProvider>
           </AuthProvider>
         </BrowserRouter>

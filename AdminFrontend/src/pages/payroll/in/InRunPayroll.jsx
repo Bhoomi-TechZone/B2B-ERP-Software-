@@ -2,6 +2,7 @@ import { memo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { FileText, Lock, Unlock, ArrowRight, Calendar, ArrowLeft } from 'lucide-react'
+import { API_BASE_URL } from '../../../config/api'
 import PayrollRunStepper from '../components/PayrollRunStepper'
 import Step1LockPeriod from '../components/Step1LockPeriod'
 import Step2Earnings from '../components/Step2Earnings'
@@ -53,10 +54,9 @@ const InRunPayroll = memo(() => {
     try {
       setLoading(true)
       const { token } = getAuthData()
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
       
       const previewResponse = await fetch(
-        `${apiUrl}/api/payroll/preview/IN?month=${month + 1}&year=${year}`,
+        `${API_BASE_URL}/payroll/preview/IN?month=${month + 1}&year=${year}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       )
       
@@ -104,7 +104,7 @@ const InRunPayroll = memo(() => {
       }))
       
       // Auto sync if we just loaded
-      await syncAttendance(mappedEmployees.map(e => e.id), month + 1, year, token, apiUrl)
+      await syncAttendance(mappedEmployees.map(e => e.id), month + 1, year, token)
       
     } catch (error) {
       console.error(error)
@@ -113,10 +113,10 @@ const InRunPayroll = memo(() => {
     }
   }
 
-  const syncAttendance = async (empIds, monthStr, year, token, apiUrl, previewOnly = false) => {
+  const syncAttendance = async (empIds, monthStr, year, token, previewOnly = false) => {
     try {
       const response = await fetch(
-        `${apiUrl}/api/payroll/attendance-sync/IN?month=${monthStr}&year=${year}`,
+        `${API_BASE_URL}/payroll/attendance-sync/IN?month=${monthStr}&year=${year}`,
         {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -150,8 +150,7 @@ const InRunPayroll = memo(() => {
 
   const handleSyncAttendance = async (empIds, previewOnly = false) => {
     const { token } = getAuthData()
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
-    return await syncAttendance(empIds, payrollData.period.month + 1, payrollData.period.year, token, apiUrl, previewOnly)
+    return await syncAttendance(empIds, payrollData.period.month + 1, payrollData.period.year, token, previewOnly)
   }
 
   useEffect(() => {
@@ -166,14 +165,13 @@ const InRunPayroll = memo(() => {
   const handleLockToggle = async () => {
     try {
       const { token } = getAuthData()
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
       const { month, year, isLocked } = payrollData.period
       const newLockState = !isLocked
       
       const empIds = payrollData.allEmployees.map(e => e.id)
       
       const response = await fetch(
-        `${apiUrl}/api/payroll/lock-period/IN?month=${month + 1}&year=${year}&lock=${newLockState}`,
+        `${API_BASE_URL}/payroll/lock-period/IN?month=${month + 1}&year=${year}&lock=${newLockState}`,
         {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -187,7 +185,7 @@ const InRunPayroll = memo(() => {
           period: { ...prev.period, isLocked: newLockState }
         }))
         if (newLockState && !attendanceSynced) {
-           await syncAttendance(empIds, month + 1, year, token, apiUrl)
+           await syncAttendance(empIds, month + 1, year, token)
         }
       }
     } catch (error) {
@@ -198,8 +196,7 @@ const InRunPayroll = memo(() => {
   const handleUpdateEarnings = async (empId, data) => {
     try {
       const { token } = getAuthData()
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
-      const response = await fetch(`${apiUrl}/api/payroll/earnings/${empId}`, {
+      const response = await fetch(`${API_BASE_URL}/payroll/earnings/${empId}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -215,10 +212,9 @@ const InRunPayroll = memo(() => {
   const handleApprove = async () => {
     try {
       const { token } = getAuthData()
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
       const { month, year } = payrollData.period
       await fetch(
-        `${apiUrl}/api/payroll/approve/IN?month=${month + 1}&year=${year}`,
+        `${API_BASE_URL}/payroll/approve/IN?month=${month + 1}&year=${year}`,
         { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }
       )
     } catch (e) { console.error(e) }
@@ -227,9 +223,8 @@ const InRunPayroll = memo(() => {
   const handleGeneratePayslips = async () => {
     try {
       const { token } = getAuthData()
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
       const { month, year } = payrollData.period
-      await fetch(`${apiUrl}/api/payroll/run`, {
+      await fetch(`${API_BASE_URL}/payroll/run`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -243,10 +238,9 @@ const InRunPayroll = memo(() => {
   const handleMarkAsPaid = async () => {
     try {
       const { token } = getAuthData()
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://b2bbackend.btplsoft.com'
       const { month, year } = payrollData.period
       await fetch(
-        `${apiUrl}/api/payroll/mark-paid/IN?month=${month + 1}&year=${year}`,
+        `${API_BASE_URL}/payroll/mark-paid/IN?month=${month + 1}&year=${year}`,
         { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }
       )
     } catch(e) { console.error(e) }
