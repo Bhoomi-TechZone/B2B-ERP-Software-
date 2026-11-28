@@ -15,3 +15,5 @@ cryptography==42.0.0
 redis==5.0.1  # Redis for MFA sessions and OTP storage
 pyotp==2.9.0  # TOTP for MFA
 ua-parser==0.18.0  # User agent parsing for device detection
+
+python-multipart==0.0.34
