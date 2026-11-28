@@ -106,3 +106,29 @@ export const buildRegisterUrl = ({
   })
   return `/auth/register?${params.toString()}`
 }
+
+/**
+ * Build the workspace setup / onboarding URL with a fresh session token.
+ *
+ * @param {object} opts
+ * @param {string} opts.step   - Current step identifier (e.g. 'company-profile', 'legal-entity')
+ * @param {string} opts.ref    - Referrer context (e.g. 'verification', 'direct')
+ * @param {string} opts.mode   - Setup mode (e.g. 'workspace-setup', 'tenant-init')
+ * @returns {string}           - Full relative URL
+ */
+export const buildOnboardingUrl = ({
+  step = 'company-profile',
+  ref  = 'verification',
+  mode = 'workspace-setup',
+} = {}) => {
+  const token = generateSessionToken('onboarding')
+  const params = new URLSearchParams({
+    session_token: token,
+    op:            'setup_wizard',
+    step,
+    ref,
+    mode,
+  })
+  return `/onboarding/workspace-setup?${params.toString()}`
+}
+

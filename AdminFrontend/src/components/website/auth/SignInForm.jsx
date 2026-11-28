@@ -389,7 +389,7 @@ export default function SignInForm({
                       if (errors.email) setErrors({ ...errors, email: null });
                       if (apiError) setApiError("");
                     }}
-                    placeholder="name@company.com"
+                    placeholder="Enter corporate work email"
                     className={inputClasses(Boolean(errors.email))}
                     autoComplete="email"
                   />
@@ -437,7 +437,7 @@ export default function SignInForm({
                         setErrors({ ...errors, password: null });
                       if (apiError) setApiError("");
                     }}
-                    placeholder="••••••••••••"
+                    placeholder="Enter account password"
                     className={`${inputClasses(Boolean(errors.password))} pr-11`}
                     autoComplete="current-password"
                   />
@@ -728,7 +728,7 @@ export default function SignInForm({
                         if (errors.forgotEmail) setErrors({ ...errors, forgotEmail: null });
                         if (forgotError) setForgotError("");
                       }}
-                      placeholder="name@company.com"
+                      placeholder="Enter corporate work email"
                       className={inputClasses(Boolean(errors.forgotEmail))}
                       autoComplete="email"
                     />

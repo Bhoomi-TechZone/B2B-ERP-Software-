@@ -283,7 +283,7 @@ export default function RegisterWizard({
     }
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
-      return "Please enter a valid corporate email (e.g. Enter Mail).";
+      return "Please enter a valid corporate email.";
     }
     return null;
   };
@@ -423,6 +423,12 @@ export default function RegisterWizard({
       // Clear step 1 persistence once full registration is completed
       localStorage.removeItem("registration_step1");
       localStorage.setItem("last_registered_email", workEmail.trim().toLowerCase());
+      localStorage.setItem("registered_admin_name", `${firstName} ${lastName}`.trim());
+      localStorage.setItem("registered_region", region);
+      const countryMapping = { IN: 'India', US: 'United States', UK: 'United Kingdom', GB: 'United Kingdom', EU: 'United Kingdom' };
+      localStorage.setItem("registered_country", countryMapping[region] || 'India');
+      localStorage.setItem("registered_company_name", companyName.trim());
+      localStorage.setItem("registered_plan_slug", selectedPlanSlug);
       setCurrentStep(3);
 
       if (onRegisterComplete) {
@@ -570,7 +576,7 @@ export default function RegisterWizard({
                           if (step1Errors.firstName)
                             setStep1Errors({ ...step1Errors, firstName: null });
                         }}
-                        placeholder="Name"
+                        placeholder="Enter first name"
                         className={`${inputClasses(Boolean(step1Errors.firstName))} pl-10`}
                       />
                     </div>
@@ -599,7 +605,7 @@ export default function RegisterWizard({
                           if (step1Errors.lastName)
                             setStep1Errors({ ...step1Errors, lastName: null });
                         }}
-                        placeholder="Lastname"
+                        placeholder="Enter last name"
                         className={`${inputClasses(Boolean(step1Errors.lastName))} pl-10`}
                       />
                     </div>
@@ -630,7 +636,7 @@ export default function RegisterWizard({
                         if (step1Errors.workEmail)
                           setStep1Errors({ ...step1Errors, workEmail: null });
                       }}
-                      placeholder="Enter Mail"
+                      placeholder="Enter corporate work email"
                       className={`${inputClasses(Boolean(step1Errors.workEmail))} pl-10`}
                     />
                   </div>
@@ -700,7 +706,7 @@ export default function RegisterWizard({
                                 type="text"
                                 value={countrySearchQuery}
                                 onChange={(e) => setCountrySearchQuery(e.target.value)}
-                                placeholder="Search country or code (e.g. +91, UK)..."
+                                placeholder="Search country or calling code..."
                                 className={`w-full py-1.5 pl-8 pr-3 rounded-lg text-xs outline-none transition-all ${isLight
                                   ? "bg-gray-100 border border-gray-200 focus:border-[#FF6B00] text-gray-900 placeholder:text-gray-400"
                                   : "bg-white/[0.06] border border-white/10 focus:border-[#FF6B00] text-white placeholder:text-gray-500"
@@ -821,7 +827,7 @@ export default function RegisterWizard({
                             }
                           }
                         }}
-                        placeholder="Create secure password"
+                        placeholder="Enter secure password"
                         className={`${inputClasses(Boolean(step1Errors.password))} pl-10 pr-10`}
                       />
                       <button
@@ -867,7 +873,7 @@ export default function RegisterWizard({
                           if (step1Errors.confirmPassword)
                             setStep1Errors({ ...step1Errors, confirmPassword: null });
                         }}
-                        placeholder="Re-enter password"
+                        placeholder="Confirm your password"
                         className={`${inputClasses(Boolean(step1Errors.confirmPassword))} pl-10 pr-10`}
                       />
                       <button
@@ -1031,7 +1037,7 @@ export default function RegisterWizard({
                         if (step2Errors.companyName)
                           setStep2Errors({ ...step2Errors, companyName: null });
                       }}
-                      placeholder="Acme Global Technologies Inc."
+                      placeholder="Enter registered company name"
                       className={`${inputClasses(Boolean(step2Errors.companyName))} pl-10`}
                     />
                   </div>

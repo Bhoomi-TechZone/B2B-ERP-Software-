@@ -42,6 +42,14 @@ const authService = {
     // Save both tokens
     if (data.access_token)  localStorage.setItem('access_token',  data.access_token)
     if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token)
+    if (data.tenant?.primary_region) {
+      localStorage.setItem('registered_region', data.tenant.primary_region)
+      const countryMapping = { IN: 'India', US: 'United States', UK: 'United Kingdom', GB: 'United Kingdom', EU: 'United Kingdom' }
+      localStorage.setItem('registered_country', countryMapping[data.tenant.primary_region] || 'India')
+    }
+    if (data.tenant?.name) {
+      localStorage.setItem('registered_company_name', data.tenant.name)
+    }
     return data
   },
 
@@ -59,6 +67,14 @@ const authService = {
     const data = await publicPost(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { token })
     if (data.access_token)  localStorage.setItem('access_token',  data.access_token)
     if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token)
+    if (data.tenant?.primary_region) {
+      localStorage.setItem('registered_region', data.tenant.primary_region)
+      const countryMapping = { IN: 'India', US: 'United States', UK: 'United Kingdom', GB: 'United Kingdom', EU: 'United Kingdom' }
+      localStorage.setItem('registered_country', countryMapping[data.tenant.primary_region] || 'India')
+    }
+    if (data.tenant?.name) {
+      localStorage.setItem('registered_company_name', data.tenant.name)
+    }
     return data
   },
 
