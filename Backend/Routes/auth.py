@@ -530,14 +530,21 @@ async def register_step2(
         ip_address = extract_ip_address(request)
         
         # Update registration with company details
-        # Convert company_size from frontend format
+        # Convert company_size from frontend format (handle hyphens, en-dashes, and em-dashes)
         company_size_value = company_data.get('company_size')
         if company_size_value:
+            normalized_size = str(company_size_value).replace("–", "-").replace("—", "-").strip()
             size_mapping = {
-                "1-10": "1_10", "11-50": "11_50", "51-200": "51_200",
-                "201-500": "201_500", "501-1000": "501_1000", "1000+": "1000_plus"
+                "1-10": "1_10", "1–10": "1_10",
+                "11-50": "11_50", "11–50": "11_50",
+                "51-200": "51_200", "51–200": "51_200",
+                "201-500": "201_500", "201–500": "201_500",
+                "501-1000": "501_1000", "501–1000": "501_1000",
+                "1000+": "1000_plus",
+                "1_10": "1_10", "11_50": "11_50", "51_200": "51_200",
+                "201_500": "201_500", "501_1000": "501_1000", "1000_plus": "1000_plus"
             }
-            company_size_value = size_mapping.get(company_size_value, company_size_value)
+            company_size_value = size_mapping.get(normalized_size, "11_50")
             registration.company_size = CompanySize(company_size_value)
         
         registration.company_name = company_data.get('company_name')
@@ -551,7 +558,10 @@ async def register_step2(
             registration.plan_slug = company_data['plan_slug']
         
         if company_data.get('billing_cycle'):
-            registration.billing_cycle = BillingCycle(company_data['billing_cycle'])
+            cycle_val = company_data['billing_cycle']
+            if cycle_val == "yearly":
+                cycle_val = "annual"
+            registration.billing_cycle = BillingCycle(cycle_val)
         
         # Save the updated registration with company data
         await registration.save()
