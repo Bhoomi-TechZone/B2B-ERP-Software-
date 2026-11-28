@@ -60,6 +60,10 @@ class EntityRequest(BaseModel):
     # Location
     state_province: Optional[str] = Field(None, max_length=100, description="State/Province")
     
+    # Statutory & Billing
+    company_registration_no: Optional[str] = Field(None, max_length=50, description="CIN / Corporate registration number")
+    billing_contact_email: Optional[EmailStr] = Field(None, description="Billing contact email")
+    
     # Payroll
     pay_frequency: str = Field(..., description="Pay frequency: weekly, bi_weekly, semi_monthly, monthly")
     currency: str = Field(..., min_length=3, max_length=3, description="Currency code (USD, GBP, INR)")
@@ -151,6 +155,10 @@ class OnboardingProgressResponse(BaseModel):
     step_4_completed: bool
     step_5_completed: bool
     step_6_completed: bool
+    company_name: Optional[str] = None
+    primary_region: Optional[str] = None
+    admin_name: Optional[str] = None
+    admin_email: Optional[str] = None
 
 
 class DetailedOnboardingProgressResponse(BaseModel):

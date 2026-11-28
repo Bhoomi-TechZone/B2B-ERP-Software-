@@ -14,7 +14,7 @@ import VerifyEmailPage from './pages/registration/VerifyEmailPage'
 import AcceptInvitePage from './pages/auth/AcceptInvitePage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import CareersPage from './pages/public/CareersPage'
-import { buildSignInUrl, buildRegisterUrl, buildRecoveryUrl } from './utils/authSession'
+import { buildSignInUrl, buildRegisterUrl, buildRecoveryUrl, buildOnboardingUrl } from './utils/authSession'
 
 /**
  * HashInterceptor:
@@ -239,7 +239,9 @@ function App() {
         <Route path="/accept-invite" element={<Navigate to="/auth/invite/accept?op=accept&ref=legacy" replace />} />
         <Route path="/auth/invite/accept/overview" element={<Navigate to="/auth/invite/accept?op=accept&ref=legacy" replace />} />
 
-        <Route path="/onboarding" element={<ErrorBoundary><OnboardingPage /></ErrorBoundary>} />
+        <Route path="/onboarding/workspace-setup" element={<ErrorBoundary><OnboardingPage /></ErrorBoundary>} />
+        <Route path="/onboarding" element={<Navigate to={buildOnboardingUrl({ ref: 'direct' })} replace />} />
+        <Route path="/auth/onboarding" element={<Navigate to={buildOnboardingUrl({ ref: 'auth_nav' })} replace />} />
         <Route path="/careers" element={<CareersPage />} />
 
         {/* ── Authenticated ───────────────────────────────── */}

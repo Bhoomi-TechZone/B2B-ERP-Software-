@@ -36,12 +36,33 @@ async def get_onboarding_progress(
 ):
     """Get current onboarding progress for the user's tenant"""
     try:
-        onboarding = await OnboardingService.get_onboarding_progress(UUID(current_user.get('tid')))
+        tenant_id = UUID(current_user.get('tid'))
+        onboarding = await OnboardingService.get_onboarding_progress(tenant_id)
         
         if not onboarding:
             # Create initial onboarding record
-            onboarding = await OnboardingService.create_onboarding_record(UUID(current_user.get('tid')))
+            onboarding = await OnboardingService.create_onboarding_record(tenant_id)
         
+        tenant_name = None
+        primary_region = None
+        user_name = None
+        user_email = None
+        try:
+            from Models.tenant_user import Tenant, User
+            tenant = await Tenant.find_one(Tenant.id == tenant_id)
+            if tenant:
+                tenant_name = tenant.name
+                primary_region = tenant.primary_region.value if hasattr(tenant.primary_region, 'value') else str(tenant.primary_region)
+            
+            uid = current_user.get('uid') or current_user.get('sub')
+            if uid:
+                user = await User.find_one(User.id == UUID(str(uid)))
+                if user:
+                    user_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or user.display_name or user.email
+                    user_email = user.email
+        except Exception as te:
+            logger.warning(f"Could not load metadata for onboarding: {te}")
+
         return OnboardingProgressResponse(
             tenant_id=str(onboarding.tenant_id),
             current_step=onboarding.current_step,
@@ -51,7 +72,11 @@ async def get_onboarding_progress(
             step_3_completed=onboarding.step_3_team_invites is not None,
             step_4_completed=onboarding.step_4_payroll_config is not None,
             step_5_completed=onboarding.step_5_leave_policy is not None,
-            step_6_completed=onboarding.is_completed
+            step_6_completed=onboarding.is_completed,
+            company_name=tenant_name,
+            primary_region=primary_region,
+            admin_name=user_name,
+            admin_email=user_email,
         )
     except Exception as e:
         logger.error(f"Failed to get onboarding progress: {str(e)}", exc_info=True)
