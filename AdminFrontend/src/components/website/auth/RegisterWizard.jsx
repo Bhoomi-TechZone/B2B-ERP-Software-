@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   User,
   Mail,
@@ -20,22 +21,26 @@ import {
   Briefcase,
   Search,
   ChevronDown,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import {
   checkPasswordRules,
   getPasswordMissingRequirements,
 } from "./PasswordStrengthMeter";
 import { ALL_COUNTRIES } from "./countriesData";
+import authService from "../../../services/authService";
+import plansService from "../../../services/plansService";
 
 // Supported countries with calling codes & required digit counts
 const COUNTRY_CALLING_CODES = ALL_COUNTRIES;
 
 const COMPANY_SIZES = [
-  "1–10",
-  "11–50",
-  "51–200",
-  "201–500",
-  "501–1000",
+  "1-10",
+  "11-50",
+  "51-200",
+  "201-500",
+  "501-1000",
   "1000+",
 ];
 
@@ -88,36 +93,144 @@ export default function RegisterWizard({
   defaultPlan = "professional",
   scrollRef,
 }) {
-  const [currentStep, setCurrentStep] = useState(1); // 1: Personal Credentials | 2: Company Setup | 3: Complete Success
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // STEP 1 Form State
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [workEmail, setWorkEmail] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState(
-    COUNTRY_CALLING_CODES[0],
-  );
-  const [phoneNumber, setPhoneNumber] = useState("");
+  // Check if user has already completed Step 1 previously
+  const savedStep1 = useMemo(() => {
+    try {
+      const raw = localStorage.getItem("registration_step1");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const [currentStep, setCurrentStep] = useState(() => {
+    try {
+      const raw = localStorage.getItem("registration_step1");
+      const saved = raw ? JSON.parse(raw) : null;
+      if (saved && saved.completed && saved.workEmail) {
+        return 2; // User has already completed Step 1 -> resume directly at Step 2!
+      }
+    } catch {}
+    return 1;
+  });
+
+  const [redirectCountdown, setRedirectCountdown] = useState(4);
+
+  // URL Query Parameters
+  const urlPlan = searchParams.get("plan") || defaultPlan || "pro-plan";
+  const urlBilling = searchParams.get("billing") || "monthly";
+  const urlRegion = searchParams.get("region") || "IN";
+
+  // STEP 1 Form State (pre-populated from savedStep1 if available)
+  const [firstName, setFirstName] = useState(savedStep1?.firstName || "");
+  const [lastName, setLastName] = useState(savedStep1?.lastName || "");
+  const [workEmail, setWorkEmail] = useState(savedStep1?.workEmail || "");
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    if (savedStep1?.selectedCountryCode) {
+      const found = COUNTRY_CALLING_CODES.find((c) => c.code === savedStep1.selectedCountryCode);
+      if (found) return found;
+    }
+    return COUNTRY_CALLING_CODES[0];
+  });
+  const [phoneNumber, setPhoneNumber] = useState(savedStep1?.phoneNumber || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(savedStep1?.termsAgreed || false);
   const [marketingAgreed, setMarketingAgreed] = useState(true);
 
   // STEP 2 Form State
   const [companyName, setCompanyName] = useState("");
-  const [companySize, setCompanySize] = useState("11–50");
+  const [companySize, setCompanySize] = useState("11-50");
   const [industry, setIndustry] = useState("Technology");
-  const [region, setRegion] = useState("IN");
-  const [planId, setPlanId] = useState(defaultPlan);
-  const [billingCycle, setBillingCycle] = useState("monthly"); // 'monthly' | 'yearly'
+  const [region, setRegion] = useState(urlRegion);
+  const [planId, setPlanId] = useState(urlPlan);
+  const [billingCycle, setBillingCycle] = useState(urlBilling); // 'monthly' | 'yearly'
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
+  const [backendPlans, setBackendPlans] = useState([]);
+
+  // Submitting & API state
+  const [isSubmittingStep1, setIsSubmittingStep1] = useState(false);
+  const [step1ApiError, setStep1ApiError] = useState("");
+  const [isSubmittingStep2, setIsSubmittingStep2] = useState(false);
+  const [step2ApiError, setStep2ApiError] = useState("");
+
+  // Step 3 Resend state
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendMessage, setResendMessage] = useState("");
 
   // Errors state
   const [step1Errors, setStep1Errors] = useState({});
   const [step2Errors, setStep2Errors] = useState({});
+
+  // Load Active Plans from Backend
+  useEffect(() => {
+    plansService
+      .getActivePlans()
+      .then((data) => {
+        const list = Array.isArray(data)
+          ? data
+          : data?.plans || data?.data || data?.items || [];
+        if (list && list.length > 0) {
+          const mapped = list.map((p, idx) => {
+            const monthly = p.price_monthly_inr || (idx === 0 ? 2500 : idx === 1 ? 5000 : 7000);
+            const yearly = p.price_yearly_inr
+              ? Math.round(p.price_yearly_inr / 12)
+              : Math.round(monthly * 0.93);
+            return {
+              id: p.slug || p.id,
+              slug: p.slug || p.id,
+              name: p.name,
+              monthlyPrice: monthly,
+              yearlyPrice: yearly,
+              desc: p.description || `${p.name} · Enterprise Management & Automation`,
+              featured: idx === 1 || p.slug?.includes("enterprise"),
+            };
+          });
+          setBackendPlans(mapped);
+          if (urlPlan) {
+            const match = mapped.find(
+              (p) =>
+                p.slug.toLowerCase() === urlPlan.toLowerCase() ||
+                p.id.toLowerCase() === urlPlan.toLowerCase(),
+            );
+            if (match) setPlanId(match.slug);
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load plans in wizard:", err);
+      });
+  }, [urlPlan]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  // Automatic redirection to home page upon Step 3 registration completion
+  useEffect(() => {
+    if (currentStep === 3) {
+      if (redirectCountdown <= 0) {
+        navigate('/');
+        return;
+      }
+      const timer = setInterval(() => {
+        setRedirectCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [currentStep, redirectCountdown, navigate]);
 
   // Country calling code searchable dropdown state
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -185,9 +298,10 @@ export default function RegisterWizard({
     return null;
   };
 
-  // Handle Step 1 Validation & Proceed
-  const handleStep1Submit = (e) => {
+  // Handle Step 1 Validation & API Execution
+  const handleStep1Submit = async (e) => {
     e.preventDefault();
+    setStep1ApiError("");
     const errors = {};
 
     if (!firstName.trim() || firstName.trim().length < 2) {
@@ -218,14 +332,67 @@ export default function RegisterWizard({
     }
 
     setStep1Errors(errors);
-    if (Object.keys(errors).length === 0) {
+    if (Object.keys(errors).length > 0) return;
+
+    setIsSubmittingStep1(true);
+    try {
+      const cleanPhone = phoneNumber.replace(/\D/g, "");
+      const result = await authService.registerStep1({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: workEmail.trim().toLowerCase(),
+        phone_country_code: selectedCountry.code || "+91",
+        phone_number: cleanPhone,
+        password: password,
+        terms_accepted: termsAgreed,
+      });
+
+      // Save Step 1 completion in localStorage so returning users always land on Step 2
+      localStorage.setItem("registration_step1", JSON.stringify({
+        completed: true,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        workEmail: workEmail.trim().toLowerCase(),
+        phoneNumber: cleanPhone,
+        selectedCountryCode: selectedCountry.code,
+        termsAgreed: termsAgreed,
+      }));
+
+      if (result?.status === "pending_verification_resent") {
+        localStorage.setItem("last_registered_email", workEmail.trim().toLowerCase());
+        setCurrentStep(3);
+        return;
+      }
+
       setCurrentStep(2);
+    } catch (err) {
+      const msg = err.message || "";
+      // If user already has a pending registration needing Step 2, auto-advance to Step 2
+      if (msg.includes("Step 2") || (msg.includes("already registered") && !msg.includes("active"))) {
+        localStorage.setItem("registration_step1", JSON.stringify({
+          completed: true,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          workEmail: workEmail.trim().toLowerCase(),
+          phoneNumber: phoneNumber.replace(/\D/g, ""),
+          selectedCountryCode: selectedCountry.code,
+          termsAgreed: termsAgreed,
+        }));
+        setCurrentStep(2);
+        return;
+      }
+      setStep1ApiError(
+        msg || "Failed to create account. Please check your details and try again."
+      );
+    } finally {
+      setIsSubmittingStep1(false);
     }
   };
 
-  // Handle Step 2 Validation & Finish
-  const handleStep2Submit = (e) => {
+  // Handle Step 2 Validation & API Execution
+  const handleStep2Submit = async (e) => {
     e.preventDefault();
+    setStep2ApiError("");
     const errors = {};
 
     if (!companyName.trim() || companyName.trim().length < 2) {
@@ -234,8 +401,30 @@ export default function RegisterWizard({
     }
 
     setStep2Errors(errors);
-    if (Object.keys(errors).length === 0) {
+    if (Object.keys(errors).length > 0) return;
+
+    setIsSubmittingStep2(true);
+    try {
+      const selectedPlanSlug = planId || (backendPlans[0]?.slug || "pro-plan");
+      const cleanCompanySize = (companySize || '11-50').replace(/–|—/g, '-');
+      const cleanBillingCycle = billingCycle === 'yearly' ? 'annual' : billingCycle;
+
+      await authService.registerStep2({
+        email: workEmail.trim().toLowerCase(),
+        company_name: companyName.trim(),
+        company_size: cleanCompanySize,
+        industry: industry,
+        primary_region: region,
+        plan_slug: selectedPlanSlug,
+        billing_cycle: cleanBillingCycle,
+        promo_code: promoCode.trim() || null,
+      });
+
+      // Clear step 1 persistence once full registration is completed
+      localStorage.removeItem("registration_step1");
+      localStorage.setItem("last_registered_email", workEmail.trim().toLowerCase());
       setCurrentStep(3);
+
       if (onRegisterComplete) {
         onRegisterComplete({
           firstName,
@@ -246,10 +435,32 @@ export default function RegisterWizard({
           companySize,
           industry,
           region,
-          planId,
+          planId: selectedPlanSlug,
           billingCycle,
         });
       }
+    } catch (err) {
+      setStep2ApiError(
+        err.message || "Failed to provision workspace. Please try again."
+      );
+    } finally {
+      setIsSubmittingStep2(false);
+    }
+  };
+
+  // Handle Resend Verification
+  const handleResendVerification = async () => {
+    if (resendCooldown > 0 || isResending) return;
+    setIsResending(true);
+    setResendMessage("");
+    try {
+      await authService.resendVerification(workEmail.trim().toLowerCase());
+      setResendMessage("Verification link sent! Check your inbox.");
+      setResendCooldown(30);
+    } catch (err) {
+      setResendMessage(err.message || "Failed to resend. Please try again later.");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -717,13 +928,31 @@ export default function RegisterWizard({
                   )}
                 </div>
 
+                {/* Step 1 API Error Alert */}
+                {step1ApiError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{step1ApiError}</span>
+                  </div>
+                )}
+
                 {/* Step 1 Submit Button */}
                 <button
                   type="submit"
-                  className="w-full py-3 px-4 rounded-xl font-semibold text-sm tracking-wide bg-[#FF6B00] hover:bg-[#FF7B18] text-[#0A0505] shadow-[0_4px_20px_rgba(255,107,0,0.35)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]"
+                  disabled={isSubmittingStep1}
+                  className="w-full py-3 px-4 rounded-xl font-semibold text-sm tracking-wide bg-[#FF6B00] hover:bg-[#FF7B18] text-[#0A0505] shadow-[0_4px_20px_rgba(255,107,0,0.35)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                 >
-                  <span>Continue to Workspace Setup</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isSubmittingStep1 ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Validating credentials...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Continue to Workspace Setup</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
 
                 {/* Switch to Sign In */}
@@ -760,16 +989,21 @@ export default function RegisterWizard({
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="sm:absolute sm:left-0 sm:top-1 inline-flex items-center gap-1.5 text-xs text-[#FF6B00] hover:underline mb-1 sm:mb-0 font-medium"
+                className="sm:absolute sm:left-0 sm:top-1 inline-flex items-center gap-1.5 text-xs text-[#FF6B00] hover:underline mb-1 sm:mb-0 font-medium cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back</span>
+                <span>Back to Step 1</span>
               </button>
               <h2
                 className={`text-lg sm:text-xl font-bold tracking-tight ${isLight ? "text-gray-950" : "text-white"}`}
               >
                 Configure your workspace
               </h2>
+              {workEmail && (
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  Registering workspace for: <span className="font-semibold text-[#FF6B00]">{workEmail}</span>
+                </p>
+              )}
             </div>
 
             <form onSubmit={handleStep2Submit} className="space-y-4" noValidate>
@@ -813,7 +1047,7 @@ export default function RegisterWizard({
                   <label
                     className={`text-xs font-semibold block ${isLight ? "text-gray-700" : "text-gray-300"}`}
                   >
-                    Total Employee Count *
+                    Company Size *
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                     {COMPANY_SIZES.map((size) => (
@@ -937,8 +1171,9 @@ export default function RegisterWizard({
 
                   {/* Plans cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {SUBSCRIPTION_PLANS.map((plan) => {
-                      const isSelected = planId === plan.id;
+                    {(backendPlans.length > 0 ? backendPlans : SUBSCRIPTION_PLANS).map((plan) => {
+                      const isSelected =
+                        (planId || '').toLowerCase() === (plan.slug || plan.id || '').toLowerCase();
                       const price =
                         billingCycle === "yearly"
                           ? plan.yearlyPrice
@@ -946,8 +1181,8 @@ export default function RegisterWizard({
 
                       return (
                         <div
-                          key={plan.id}
-                          onClick={() => setPlanId(plan.id)}
+                          key={plan.slug || plan.id}
+                          onClick={() => setPlanId(plan.slug || plan.id)}
                           className={`p-3 rounded-2xl border cursor-pointer transition-all duration-200 select-none ${isSelected
                             ? "border-[#FF6B00] bg-[#FF6B00]/10 shadow-[0_0_16px_rgba(255,107,0,0.2)]"
                             : isLight
@@ -1016,13 +1251,31 @@ export default function RegisterWizard({
                   )}
                 </div>
 
+                {/* Step 2 API Error Alert */}
+                {step2ApiError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{step2ApiError}</span>
+                  </div>
+                )}
+
                 {/* Step 2 Submit Button */}
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-4 rounded-xl font-semibold text-sm tracking-wide bg-[#FF6B00] hover:bg-[#FF7B18] text-[#0A0505] shadow-[0_4px_25px_rgba(255,107,0,0.4)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] mt-2"
+                  disabled={isSubmittingStep2}
+                  className="w-full py-3.5 px-4 rounded-xl font-semibold text-sm tracking-wide bg-[#FF6B00] hover:bg-[#FF7B18] text-[#0A0505] shadow-[0_4px_25px_rgba(255,107,0,0.4)] transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98] mt-2 disabled:opacity-50 cursor-pointer"
                 >
-                  <span>Complete Setup & Launch Senti Workspace</span>
-                  <Sparkles className="w-4 h-4" />
+                  {isSubmittingStep2 ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Provisioning Organization Workspace...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Complete Setup & Launch Senti Workspace</span>
+                      <Sparkles className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -1048,20 +1301,25 @@ export default function RegisterWizard({
               <h2
                 className={`text-2xl font-bold ${isLight ? "text-gray-950" : "text-white"}`}
               >
-                Workspace Initialized!
+                Registration Complete!
               </h2>
               <p
-                className={`text-xs sm:text-sm max-w-[360px] mx-auto leading-relaxed ${isLight ? "text-gray-600" : "text-gray-300"}`}
+                className={`text-xs sm:text-sm max-w-[420px] mx-auto leading-relaxed ${isLight ? "text-gray-600" : "text-gray-300"}`}
               >
                 Welcome aboard,{" "}
                 <span className="font-semibold text-[#FF6B00]">{firstName}</span>.
-                Your enterprise organization{" "}
+                Your enterprise workspace for{" "}
                 <span className="font-semibold">{companyName}</span> has been
-                provisioned with audit-ready security.
+                provisioned. A security verification link has been sent directly to{" "}
+                <span className="font-semibold text-[#FF6B00]">{workEmail}</span>.
               </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Verification email sent directly to your Inbox</span>
+              </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 max-w-[380px] mx-auto text-left text-xs space-y-1.5">
+            <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 max-w-[400px] mx-auto text-left text-xs space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-400">Organization:</span>
                 <span className="font-semibold">{companyName}</span>
@@ -1082,14 +1340,64 @@ export default function RegisterWizard({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={onSwitchToSignIn}
-              className="w-full max-w-[380px] mx-auto py-3 px-6 rounded-xl font-semibold text-sm tracking-wide bg-[#FF6B00] hover:bg-[#FF7B18] text-[#0A0505] shadow-[0_4px_20px_rgba(255,107,0,0.35)] transition-all flex items-center justify-center gap-2"
-            >
-              <span>Proceed to Sign In</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {/* Email verification reminder & resend action */}
+            <div className="max-w-[400px] mx-auto pt-1 space-y-3">
+              <div className="flex items-center justify-between text-xs px-1">
+                <span className={isLight ? "text-gray-600" : "text-gray-400"}>
+                  Didn't receive the email?
+                </span>
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || isResending}
+                  onClick={handleResendVerification}
+                  className="text-[#FF6B00] font-semibold hover:underline flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Resending...</span>
+                    </>
+                  ) : resendCooldown > 0 ? (
+                    <span>Resend in {resendCooldown}s</span>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Resend Verification</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {resendMessage && (
+                <p className="text-[11px] text-emerald-500 font-medium text-center">
+                  {resendMessage}
+                </p>
+              )}
+
+              {/* Automatic Redirection to Home Page */}
+              <div className="pt-2 space-y-2">
+                <p className="text-xs text-gray-400">
+                  Redirecting to home page in{" "}
+                  <span className="text-[#FF6B00] font-bold">{redirectCountdown}s</span>...
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="w-full py-3 px-6 rounded-xl font-semibold text-sm tracking-wide bg-[#FF6B00] hover:bg-[#FF7B18] text-[#0A0505] shadow-[0_4px_20px_rgba(255,107,0,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                >
+                  <span>Return to Home Page Now</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onSwitchToSignIn}
+                  className="w-full text-xs text-gray-400 hover:text-white transition-colors py-1 cursor-pointer font-medium"
+                >
+                  Or proceed directly to Sign In →
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>

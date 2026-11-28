@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Check,
@@ -11,6 +12,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import plansService from '../../services/plansService';
+import { buildRegisterUrl } from '../../utils/authSession';
 
 const DEFAULT_PLANS = [
   {
@@ -68,9 +70,18 @@ const DEFAULT_PLANS = [
 ];
 
 export default function PricingSection({ onOpenRegister }) {
+  const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const { isLight } = useTheme();
   const [plans, setPlans] = useState(DEFAULT_PLANS);
+
+  const handlePlanClick = (planSlug) => {
+    if (onOpenRegister) {
+      onOpenRegister(planSlug);
+    } else {
+      navigate(buildRegisterUrl({ ref: 'pricing', plan: planSlug, billing: billingCycle, mode: 'new-company' }));
+    }
+  };
 
   // Fetch real plans from the backend API
   useEffect(() => {
@@ -84,8 +95,8 @@ export default function PricingSection({ onOpenRegister }) {
           const mapped = list.map((p, idx) => {
             const isFeatured = idx === 1 || p.slug?.includes('enterprise');
             const monthlyPrice = p.price_monthly_inr || 5000;
-            const yearlyPrice = p.price_yearly_inr 
-              ? Math.round(p.price_yearly_inr / 12) 
+            const yearlyPrice = p.price_yearly_inr
+              ? Math.round(p.price_yearly_inr / 12)
               : Math.round(monthlyPrice * 0.93);
             const trialDays = p.trial_days || 14;
 
@@ -147,9 +158,8 @@ export default function PricingSection({ onOpenRegister }) {
   return (
     <section
       id="pricing"
-      className={`relative w-full py-12 sm:py-16 px-4 sm:px-8 lg:px-12 select-none transition-colors duration-300 ${
-        isLight ? 'text-gray-900' : 'text-white'
-      }`}
+      className={`relative w-full py-12 sm:py-16 px-4 sm:px-8 lg:px-12 select-none transition-colors duration-300 ${isLight ? 'text-gray-900' : 'text-white'
+        }`}
       style={{
         background: isLight
           ? 'linear-gradient(180deg, #F6F1EC 0%, #FAF7F5 35%, #F4EFEB 70%, #EFE9E4 100%)'
@@ -170,60 +180,52 @@ export default function PricingSection({ onOpenRegister }) {
       />
 
       <div className="relative z-10 max-w-[1100px] mx-auto">
-        
+
         {/* ========================================================= */}
         {/* HEADER: Pill, Title, Subtitle & Billing Switcher          */}
         {/* ========================================================= */}
         <div className="text-center max-w-[680px] mx-auto space-y-2.5 mb-7 sm:mb-9">
-          
+
           {/* Section Pill */}
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border backdrop-blur-md ${
-            isLight ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.06] border-white/10'
-          }`}>
-            <Sparkles className="w-3 h-3 text-[#FF6B00]" />
-            <span className={`text-[10px] font-semibold tracking-widest uppercase ${
-              isLight ? 'text-gray-800' : 'text-gray-300'
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border backdrop-blur-md ${isLight ? 'bg-black/[0.04] border-black/10' : 'bg-white/[0.06] border-white/10'
             }`}>
+            <Sparkles className="w-3 h-3 text-[#FF6B00]" />
+            <span className={`text-[10px] font-semibold tracking-widest uppercase ${isLight ? 'text-gray-800' : 'text-gray-300'
+              }`}>
               Subscription Plans & Free Trials
             </span>
           </div>
 
           {/* Heading */}
-          <h2 className={`text-2xl sm:text-3xl lg:text-[36px] font-[200] tracking-[-0.03em] leading-[1.12] ${
-            isLight ? 'text-gray-950' : 'text-white'
-          }`}>
-            Predictable pricing for every <span className={`font-semibold text-transparent bg-clip-text bg-gradient-to-r ${
-              isLight ? 'from-gray-900 via-orange-950 to-[#FF6B00]' : 'from-white via-orange-100 to-[#FF6B00]'
-            }`}>stage of growth.</span>
+          <h2 className={`text-2xl sm:text-3xl lg:text-[36px] font-[200] tracking-[-0.03em] leading-[1.12] ${isLight ? 'text-gray-950' : 'text-white'
+            }`}>
+            Predictable pricing for every <span className={`font-semibold text-transparent bg-clip-text bg-gradient-to-r ${isLight ? 'from-gray-900 via-orange-950 to-[#FF6B00]' : 'from-white via-orange-100 to-[#FF6B00]'
+              }`}>stage of growth.</span>
           </h2>
 
           {/* Subtitle */}
-          <p className={`text-xs sm:text-[13px] font-light leading-relaxed max-w-[540px] mx-auto ${
-            isLight ? 'text-gray-600' : 'text-gray-400'
-          }`}>
+          <p className={`text-xs sm:text-[13px] font-light leading-relaxed max-w-[540px] mx-auto ${isLight ? 'text-gray-600' : 'text-gray-400'
+            }`}>
             Select a plan tailored to your team size and management requirements. Start risk-free with zero setup fees.
           </p>
 
           {/* Billing Switcher with 7% Yearly Discount Badge */}
           <div className="pt-1.5 flex items-center justify-center">
-            <div className={`relative inline-flex items-center p-1 rounded-full backdrop-blur-md border ${
-              isLight ? 'bg-black/[0.05] border-black/10' : 'bg-white/[0.04] border-white/10'
-            }`}>
+            <div className={`relative inline-flex items-center p-1 rounded-full backdrop-blur-md border ${isLight ? 'bg-black/[0.05] border-black/10' : 'bg-white/[0.04] border-white/10'
+              }`}>
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
-                className={`relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer ${
-                  billingCycle === 'monthly'
+                className={`relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 z-10 cursor-pointer ${billingCycle === 'monthly'
                     ? isLight ? 'text-white font-semibold' : 'text-black font-semibold'
                     : isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-white'
-                }`}
+                  }`}
               >
                 {billingCycle === 'monthly' && (
                   <motion.div
                     layoutId="billingPill"
-                    className={`absolute inset-0 rounded-full shadow-sm -z-10 ${
-                      isLight ? 'bg-gray-900' : 'bg-white'
-                    }`}
+                    className={`absolute inset-0 rounded-full shadow-sm -z-10 ${isLight ? 'bg-gray-900' : 'bg-white'
+                      }`}
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -233,18 +235,16 @@ export default function PricingSection({ onOpenRegister }) {
               <button
                 type="button"
                 onClick={() => setBillingCycle('yearly')}
-                className={`relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 flex items-center gap-1.5 z-10 cursor-pointer ${
-                  billingCycle === 'yearly'
+                className={`relative px-4 py-1.5 rounded-full text-xs font-medium transition-colors duration-200 flex items-center gap-1.5 z-10 cursor-pointer ${billingCycle === 'yearly'
                     ? isLight ? 'text-white font-semibold' : 'text-black font-semibold'
                     : isLight ? 'text-gray-600 hover:text-black' : 'text-gray-400 hover:text-white'
-                }`}
+                  }`}
               >
                 {billingCycle === 'yearly' && (
                   <motion.div
                     layoutId="billingPill"
-                    className={`absolute inset-0 rounded-full shadow-sm -z-10 ${
-                      isLight ? 'bg-gray-900' : 'bg-white'
-                    }`}
+                    className={`absolute inset-0 rounded-full shadow-sm -z-10 ${isLight ? 'bg-gray-900' : 'bg-white'
+                      }`}
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
@@ -271,13 +271,12 @@ export default function PricingSection({ onOpenRegister }) {
 
               return (
                 <div
-                  className={`relative flex flex-col justify-between rounded-2xl p-5 sm:p-6 backdrop-blur-md border transition-all duration-300 h-full ${
-                    isLight
+                  className={`relative flex flex-col justify-between rounded-2xl p-5 sm:p-6 backdrop-blur-md border transition-all duration-300 h-full ${isLight
                       ? plan.featured
                         ? 'bg-white/95 border-[#FF6B00]/40 shadow-[0_12px_36px_rgba(255,107,0,0.12)]'
                         : 'bg-white/95 border-gray-200/90 shadow-[0_12px_36px_rgba(0,0,0,0.06)]'
                       : `${plan.borderColor} bg-white/[0.03] shadow-[0_8px_32px_rgba(0,0,0,0.45)]`
-                  }`}
+                    }`}
                 >
                   {/* Gradient Glow */}
                   <div
@@ -285,18 +284,16 @@ export default function PricingSection({ onOpenRegister }) {
                   />
 
                   <div className="relative z-10 space-y-3.5">
-                    
+
                     {/* Top: Plan Name & Badge */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className={`text-[10px] font-bold tracking-widest uppercase block ${
-                          isLight ? 'text-gray-500' : 'text-gray-400'
-                        }`}>
+                        <span className={`text-[10px] font-bold tracking-widest uppercase block ${isLight ? 'text-gray-500' : 'text-gray-400'
+                          }`}>
                           Subscription Plan {cycle === 'yearly' && <span className="text-[#FF6B00]">· Annual</span>}
                         </span>
-                        <h3 className={`text-lg sm:text-xl font-bold tracking-tight ${
-                          isLight ? 'text-gray-950' : 'text-white'
-                        }`}>
+                        <h3 className={`text-lg sm:text-xl font-bold tracking-tight ${isLight ? 'text-gray-950' : 'text-white'
+                          }`}>
                           {plan.name}
                         </h3>
                       </div>
@@ -312,11 +309,10 @@ export default function PricingSection({ onOpenRegister }) {
                             {plan.badge}
                           </span>
                         ) : (
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
-                            isLight
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${isLight
                               ? 'bg-gray-100 text-gray-700 border-gray-200'
                               : 'bg-white/10 text-gray-300 border-white/15'
-                          }`}>
+                            }`}>
                             {plan.badge}
                           </span>
                         )}
@@ -324,14 +320,12 @@ export default function PricingSection({ onOpenRegister }) {
                     </div>
 
                     {/* Pricing Display */}
-                    <div className={`pt-1 pb-2.5 border-b flex items-baseline justify-between ${
-                      isLight ? 'border-gray-200' : 'border-white/10'
-                    }`}>
+                    <div className={`pt-1 pb-2.5 border-b flex items-baseline justify-between ${isLight ? 'border-gray-200' : 'border-white/10'
+                      }`}>
                       <div>
                         <div className="flex items-baseline gap-1.5">
-                          <span className={`text-3xl sm:text-[34px] font-extrabold tracking-tight ${
-                            isLight ? 'text-gray-950' : 'text-white'
-                          }`}>
+                          <span className={`text-3xl sm:text-[34px] font-extrabold tracking-tight ${isLight ? 'text-gray-950' : 'text-white'
+                            }`}>
                             ₹{Number(price).toLocaleString('en-IN')}
                           </span>
                           <span className={`text-xs ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>/ mo</span>
@@ -341,9 +335,8 @@ export default function PricingSection({ onOpenRegister }) {
                             7% off applied {billedAnnuallyText}
                           </span>
                         ) : (
-                          <span className={`text-[10px] block mt-0.5 font-light ${
-                            isLight ? 'text-gray-500' : 'text-gray-400'
-                          }`}>
+                          <span className={`text-[10px] block mt-0.5 font-light ${isLight ? 'text-gray-500' : 'text-gray-400'
+                            }`}>
                             Standard monthly billing
                           </span>
                         )}
@@ -359,48 +352,43 @@ export default function PricingSection({ onOpenRegister }) {
 
                     {/* Limits Bar: Team Limit & Admin Control */}
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
-                      <div className={`rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 border ${
-                        isLight
+                      <div className={`rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 border ${isLight
                           ? 'bg-gray-50 border-gray-200 text-gray-700'
                           : 'bg-white/[0.04] border-white/[0.08] text-gray-300'
-                      }`}>
+                        }`}>
                         <Users className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
                         <span className="truncate">{plan.teamSize}</span>
                       </div>
-                      <div className={`rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 border ${
-                        isLight
+                      <div className={`rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 border ${isLight
                           ? 'bg-gray-50 border-gray-200 text-gray-700'
                           : 'bg-white/[0.04] border-white/[0.08] text-gray-300'
-                      }`}>
+                        }`}>
                         <Shield className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
                         <span className="truncate">{plan.adminSeats}</span>
                       </div>
                     </div>
 
                     {/* Admin Note */}
-                    <div className={`text-[11px] rounded-lg px-2.5 py-1 flex items-center gap-1.5 border ${
-                      isLight
+                    <div className={`text-[11px] rounded-lg px-2.5 py-1 flex items-center gap-1.5 border ${isLight
                         ? 'text-orange-900 bg-orange-50 border-orange-200'
                         : 'text-orange-200/90 bg-orange-500/10 border-orange-500/15'
-                    }`}>
+                      }`}>
                       <UserCheck className="w-3 h-3 text-[#FF6B00] shrink-0" />
                       <span>{plan.adminControl}</span>
                     </div>
 
                     {/* Included Modules */}
                     <div className="space-y-1.5 pt-0.5">
-                      <span className={`text-[10px] font-bold tracking-wider uppercase block ${
-                        isLight ? 'text-gray-500' : 'text-gray-400'
-                      }`}>
+                      <span className={`text-[10px] font-bold tracking-wider uppercase block ${isLight ? 'text-gray-500' : 'text-gray-400'
+                        }`}>
                         Included Modules
                       </span>
                       <ul className="space-y-1.5 text-xs">
                         {plan.modules.map((mod, i) => (
                           <li key={i} className="flex items-center gap-2">
                             <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            <span className={`text-[11px] sm:text-xs ${
-                              isLight ? 'text-gray-700' : 'text-gray-300'
-                            }`}>{mod.name}</span>
+                            <span className={`text-[11px] sm:text-xs ${isLight ? 'text-gray-700' : 'text-gray-300'
+                              }`}>{mod.name}</span>
                           </li>
                         ))}
                       </ul>
@@ -409,17 +397,15 @@ export default function PricingSection({ onOpenRegister }) {
                   </div>
 
                   {/* Bottom CTA Button */}
-                  <div className={`relative z-10 pt-3.5 mt-3.5 border-t ${
-                    isLight ? 'border-gray-200' : 'border-white/10'
-                  }`}>
+                  <div className={`relative z-10 pt-3.5 mt-3.5 border-t ${isLight ? 'border-gray-200' : 'border-white/10'
+                    }`}>
                     <button
                       type="button"
-                      onClick={() => onOpenRegister ? onOpenRegister(plan.slug || plan.id) : null}
-                      className={`w-full py-2.5 px-4 rounded-full font-semibold text-xs sm:text-[13px] tracking-wide transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${
-                        isLight && !plan.featured
+                      onClick={() => handlePlanClick(plan.slug || plan.id)}
+                      className={`w-full py-2.5 px-4 rounded-full font-semibold text-xs sm:text-[13px] tracking-wide transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer ${isLight && !plan.featured
                           ? 'border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-900 shadow-sm'
                           : plan.buttonStyle
-                      }`}
+                        }`}
                     >
                       <span>{plan.ctaText}</span>
                       <ArrowRight className="w-3.5 h-3.5" />

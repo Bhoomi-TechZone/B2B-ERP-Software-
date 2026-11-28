@@ -19,11 +19,13 @@ import authService from "../../../services/authService";
 import apiClient from "../../../services/apiClient";
 import { API_BASE_URL } from "../../../config/api";
 import { ROLE_IDS, getRoleLanding } from "../../../config/roles";
+import { buildRecoveryUrl, buildSignInUrl } from "../../../utils/authSession";
 
 export default function SignInForm({
   isLight,
   onSwitchToRegister,
   onSignInSuccess,
+  initialRecoveryOpen = false,
 }) {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -38,7 +40,7 @@ export default function SignInForm({
   const [isLoading, setIsLoading] = useState(false);
 
   // MFA Flow states
-  const [step, setStep] = useState("credentials"); // 'credentials' | 'mfa' | 'forgot_password'
+  const [step, setStep] = useState(initialRecoveryOpen ? "forgot_password" : "credentials"); // 'credentials' | 'mfa' | 'forgot_password'
   const [mfaDigits, setMfaDigits] = useState(["", "", "", "", "", ""]);
   const [mfaError, setMfaError] = useState("");
   const mfaInputRefs = useRef([]);
@@ -177,24 +179,24 @@ export default function SignInForm({
         company: tenantObj?.id || result.tenant_id || result.company_id,
         tenant: tenantObj
           ? {
-              id: tenantObj.id,
-              name: tenantObj.name,
-              slug: tenantObj.slug,
-              subdomain: tenantObj.subdomain,
-              status: tenantObj.status,
-              region: tenantObj.primary_region,
-              currency: tenantObj.primary_currency,
-              logoUrl: tenantObj.logo_url,
-              brandColor: tenantObj.brand_color,
-              timezone: tenantObj.timezone,
-              dateFormat: tenantObj.date_format,
-              onboardingCompleted: tenantObj.onboarding_completed,
-              onboardingStep: tenantObj.onboarding_step,
-              planId: tenantObj.plan_id,
-              modules: tenantObj.modules || {},
-              planLimits: tenantObj.plan_limits || {},
-              planUsage: tenantObj.plan_usage || {},
-            }
+            id: tenantObj.id,
+            name: tenantObj.name,
+            slug: tenantObj.slug,
+            subdomain: tenantObj.subdomain,
+            status: tenantObj.status,
+            region: tenantObj.primary_region,
+            currency: tenantObj.primary_currency,
+            logoUrl: tenantObj.logo_url,
+            brandColor: tenantObj.brand_color,
+            timezone: tenantObj.timezone,
+            dateFormat: tenantObj.date_format,
+            onboardingCompleted: tenantObj.onboarding_completed,
+            onboardingStep: tenantObj.onboarding_step,
+            planId: tenantObj.plan_id,
+            modules: tenantObj.modules || {},
+            planLimits: tenantObj.plan_limits || {},
+            planUsage: tenantObj.plan_usage || {},
+          }
           : null,
       };
 
@@ -318,10 +320,9 @@ export default function SignInForm({
 
   const inputClasses = (hasError) => `
     w-full pl-10 pr-4 py-2.5 rounded-xl text-sm transition-all duration-200 outline-none
-    ${
-      isLight
-        ? `bg-gray-50/80 border ${hasError ? "border-rose-500" : "border-gray-200 hover:border-gray-300 focus:border-[#FF6B00]"} text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF6B00]/15`
-        : `bg-white/[0.04] border ${hasError ? "border-rose-500" : "border-white/10 hover:border-white/20 focus:border-[#FF7900]"} text-white placeholder:text-gray-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-[#FF7900]/25`
+    ${isLight
+      ? `bg-gray-50/80 border ${hasError ? "border-rose-500" : "border-gray-200 hover:border-gray-300 focus:border-[#FF6B00]"} text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-[#FF6B00]/15`
+      : `bg-white/[0.04] border ${hasError ? "border-rose-500" : "border-white/10 hover:border-white/20 focus:border-[#FF7900]"} text-white placeholder:text-gray-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-[#FF7900]/25`
     }
   `;
 
@@ -415,8 +416,10 @@ export default function SignInForm({
                       setForgotEmail(email);
                       setStep("forgot_password");
                       setForgotError("");
+                      const recoveryUrl = buildRecoveryUrl({ ref: 'login' });
+                      window.history.replaceState(null, '', recoveryUrl);
                     }}
-                    className="text-xs text-[#FF6B00] hover:underline font-medium"
+                    className="text-xs text-[#FF6B00] hover:underline font-medium cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -441,11 +444,10 @@ export default function SignInForm({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className={`w-8 h-8 absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center transition-colors ${
-                      isLight
+                    className={`w-8 h-8 absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center transition-colors ${isLight
                         ? "text-gray-400 hover:text-gray-700"
                         : "text-gray-500 hover:text-gray-200"
-                    }`}
+                      }`}
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
@@ -580,11 +582,10 @@ export default function SignInForm({
                     value={digit}
                     onChange={(e) => handleMfaChange(idx, e.target.value)}
                     onKeyDown={(e) => handleMfaKeyDown(idx, e)}
-                    className={`w-11 sm:w-12 h-13 sm:h-14 text-center text-lg font-bold rounded-xl outline-none transition-all ${
-                      isLight
+                    className={`w-11 sm:w-12 h-13 sm:h-14 text-center text-lg font-bold rounded-xl outline-none transition-all ${isLight
                         ? "bg-gray-100 border border-gray-300 text-gray-950 focus:bg-white focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20"
                         : "bg-white/[0.05] border border-white/15 text-white focus:bg-white/[0.1] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/30"
-                    }`}
+                      }`}
                     autoFocus={idx === 0}
                   />
                 ))}
@@ -638,8 +639,10 @@ export default function SignInForm({
                   setStep("credentials");
                   setForgotSent(false);
                   setForgotError("");
+                  const signInUrl = buildSignInUrl({ ref: 'recovery_back', mode: 'enterprise' });
+                  window.history.replaceState(null, '', signInUrl);
                 }}
-                className="inline-flex items-center gap-1.5 text-xs text-[#FF6B00] hover:underline mb-2 font-medium"
+                className="inline-flex items-center gap-1.5 text-xs text-[#FF6B00] hover:underline mb-2 font-medium cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back to sign in</span>
@@ -687,13 +690,12 @@ export default function SignInForm({
                   type="button"
                   disabled={cooldownSeconds > 0 || isLoading}
                   onClick={handleForgotSubmit}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border transition-all duration-200 flex items-center justify-center gap-2 ${
-                    cooldownSeconds > 0
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border transition-all duration-200 flex items-center justify-center gap-2 ${cooldownSeconds > 0
                       ? isLight
                         ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
                         : "border-white/10 text-gray-500 bg-white/[0.03] cursor-not-allowed"
                       : "border-[#FF6B00]/40 text-[#FF6B00] hover:bg-[#FF6B00]/10 active:scale-95 cursor-pointer"
-                  }`}
+                    }`}
                 >
                   {cooldownSeconds > 0 ? (
                     <span>Resend link available in {cooldownSeconds}s</span>

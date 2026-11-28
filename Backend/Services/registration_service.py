@@ -84,16 +84,19 @@ class RegistrationService:
         # Step 6: Create tenant registration
         # Normalize company_size from frontend format to backend format if needed
         company_size_value = registration_data.company_size
-        if company_size_value in ["1-10", "11-50", "51-200", "201-500", "501-1000", "1000+"]:
+        if company_size_value:
+            normalized_size = str(company_size_value).replace("–", "-").replace("—", "-").strip()
             size_mapping = {
-                "1-10": "1_10",
-                "11-50": "11_50",
-                "51-200": "51_200",
-                "201-500": "201_500",
-                "501-1000": "501_1000",
-                "1000+": "1000_plus"
+                "1-10": "1_10", "1–10": "1_10",
+                "11-50": "11_50", "11–50": "11_50",
+                "51-200": "51_200", "51–200": "51_200",
+                "201-500": "201_500", "201–500": "201_500",
+                "501-1000": "501_1000", "501–1000": "501_1000",
+                "1000+": "1000_plus",
+                "1_10": "1_10", "11_50": "11_50", "51_200": "51_200",
+                "201_500": "201_500", "501_1000": "501_1000", "1000_plus": "1000_plus"
             }
-            company_size_value = size_mapping.get(company_size_value, company_size_value)
+            company_size_value = size_mapping.get(normalized_size, "11_50")
         
         registration = TenantRegistration(
             email=registration_data.email.lower(),

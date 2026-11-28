@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-from email.utils import formataddr
+from email.utils import formataddr, formatdate, make_msgid
 import base64
 from typing import Optional, Tuple, Dict, Any, List
 import os
@@ -168,14 +168,17 @@ def dispatch_email(
         message.attach(MIMEText(html_content, "html"))
 
     message["Subject"] = subject
-    if sender_name:
-        message["From"] = formataddr((sender_name, sender))
-    else:
-        message["From"] = sender
-
+    from_name = sender_name or "Senti Security"
+    message["From"] = formataddr((from_name, sender))
     message["To"] = to_email
-    if reply_to:
-        message["Reply-To"] = reply_to
+    message["Reply-To"] = reply_to if reply_to else sender
+    message["Date"] = formatdate(localtime=True)
+    domain_part = "gmail.com" if "gmail" in sender.lower() else "hrmsb2b.btplsoft.com"
+    message["Message-ID"] = make_msgid(domain=domain_part)
+    message["MIME-Version"] = "1.0"
+    message["X-Mailer"] = "Senti Enterprise Mailer 2.0"
+    message["Auto-Submitted"] = "auto-generated"
+    message["X-Auto-Response-Suppress"] = "All"
 
     max_retries = 2
     for attempt in range(1, max_retries + 1):
@@ -227,113 +230,115 @@ class EmailService:
         company_name: str = "Your Company"
     ) -> bool:
         """
-        Send email verification email
-        
-        Args:
-            to_email: Recipient email address
-            verification_token: Plain text verification token
-            first_name: User's first name
-            company_name: Company name
-            
-        Returns:
-            True if email sent successfully, False otherwise
+        Send email verification email with high inbox deliverability.
         """
         try:
             cfg = get_current_email_config()
-            frontend_url = cfg.get("frontend_url", "http://localhost:5679")
-            verification_url = f"{frontend_url}/verify-email?token={verification_token}"
+            frontend_url = cfg.get("frontend_url", "http://localhost:5679").rstrip("/")
+            verification_url = f"{frontend_url}/auth/verify-email?token={verification_token}&op=verify&ref=email"
             
             logger.info(f"Verification link generated for {to_email}: {verification_url}")
             print(f"🔗 [EMAIL VERIFICATION LINK] {to_email} -> {verification_url}")
             
-            subject = "Verify Your Email - Complete Your Registration"
+            company_label = company_name if company_name else "Enterprise Workspace"
+            subject = f"Verify your Senti account: {first_name} ({company_label})"
             
-            html_content = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                    .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
-                    .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
-                    .button {{ display: inline-block; background: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }}
-                    .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
-                    .token-box {{ background: white; padding: 15px; border-left: 4px solid #667eea; margin: 20px 0; font-family: monospace; font-size: 14px; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Welcome to Our Platform!</h1>
-                    </div>
-                    <div class="content">
-                        <h2>Hi {first_name},</h2>
-                        <p>Thank you for registering <strong>{company_name}</strong> with us! We're excited to have you on board.</p>
-                        
-                        <p>To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
-                        
-                        <div style="text-align: center;">
-                            <a href="{verification_url}" class="button">Verify Email Address</a>
-                        </div>
-                        
-                        <p><strong>Or copy and paste this link into your browser:</strong></p>
-                        <div class="token-box">
-                            {verification_url}
-                        </div>
-                        
-                        <h3>What's Next?</h3>
-                        <ol>
-                            <li>Click the verification button above</li>
-                            <li>Complete your onboarding process</li>
-                            <li>Start using your 14-day free trial</li>
-                        </ol>
-                        
-                        <p><strong>Note:</strong> This verification link will expire in 48 hours.</p>
-                        
-                        <p>If you didn't create this account, you can safely ignore this email.</p>
-                        
-                        <p>Best regards,<br>
-                        <strong>The Platform Team</strong></p>
-                    </div>
-                    <div class="footer">
-                        <p>This is an automated message, please do not reply to this email.</p>
-                        <p>&copy; 2026 Your Platform. All rights reserved.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
+            html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Senti Account</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0504; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff;">
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0b0504; padding: 40px 15px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background: #160705; border: 1px solid rgba(255, 121, 0, 0.3); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);">
+                    <!-- Brand Header -->
+                    <tr>
+                        <td align="center" style="padding: 35px 25px 25px; background: linear-gradient(180deg, rgba(255,107,0,0.12) 0%, rgba(22,7,5,0) 100%);">
+                            <div style="display: inline-block; padding: 8px 16px; background: rgba(255, 107, 0, 0.15); border: 1px solid #FF6B00; border-radius: 50px; color: #FF7900; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">
+                                ⬡ SENTI ENTERPRISE HRMS
+                            </div>
+                            <h1 style="margin: 20px 0 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">
+                                Verify Your Email Address
+                            </h1>
+                        </td>
+                    </tr>
+                    <!-- Main Body -->
+                    <tr>
+                        <td style="padding: 25px 35px 35px;">
+                            <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #f3f4f6;">
+                                Hello <strong>{first_name}</strong>,
+                            </p>
+                            <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #d1d5db;">
+                                Thank you for registering your organization <strong style="color: #FF7900;">{company_label}</strong> on Senti HRMS & CRM platform. Please verify your email to activate your workspace and begin operations.
+                            </p>
+                            
+                            <!-- Action Button -->
+                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 28px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{verification_url}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #FF6B00 0%, #FF8C00 100%); color: #000000; font-size: 15px; font-weight: 800; text-decoration: none; padding: 15px 42px; border-radius: 12px; box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4); text-transform: uppercase; letter-spacing: 0.5px;">
+                                            Verify & Activate Account →
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                                Or copy and paste this secure link directly into your browser:
+                            </p>
+                            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; font-size: 11px; word-break: break-all; color: #FF7900; font-family: monospace;">
+                                {verification_url}
+                            </div>
+
+                            <p style="margin: 25px 0 0; font-size: 12px; line-height: 1.5; color: #9ca3af; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 18px;">
+                                🔒 <strong>Security Note:</strong> This single-use verification link expires in <strong>48 hours</strong>. If you did not create this enterprise account, no action is needed and this request will expire automatically.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="padding: 20px 30px; background: #0e0403; border-top: 1px solid rgba(255, 121, 0, 0.15); font-size: 11px; color: #6b7280; line-height: 1.5;">
+                            <p style="margin: 0 0 4px;">&copy; 2026 Senti HRMS & Business Automation Inc. All rights reserved.</p>
+                            <p style="margin: 0;">SOC-2 Type II Certified · End-to-End Encrypted Enterprise Infrastructure</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>"""
             
-            text_content = f"""
-            Welcome to Our Platform!
+            text_content = f"""SENTI ENTERPRISE HRMS - EMAIL VERIFICATION
+
+Hello {first_name},
+
+Thank you for registering your organization '{company_label}' on Senti HRMS & Business Automation platform.
+
+Please verify your corporate email address to activate your workspace by visiting the link below:
+
+{verification_url}
+
+This secure verification link will expire in 48 hours.
+
+If you did not initiate this registration, please disregard this email.
+
+---
+© 2026 Senti HRMS Inc. All rights reserved.
+SOC-2 Type II Certified | End-to-End Encrypted
+"""
             
-            Hi {first_name},
-            
-            Thank you for registering {company_name} with us! We're excited to have you on board.
-            
-            To complete your registration and activate your account, please verify your email address by clicking the link below:
-            
-            {verification_url}
-            
-            What's Next?
-            1. Click the verification link above
-            2. Complete your onboarding process
-            3. Start using your 14-day free trial
-            
-            Note: This verification link will expire in 48 hours.
-            
-            If you didn't create this account, you can safely ignore this email.
-            
-            Best regards,
-            The Platform Team
-            
-            ---
-            This is an automated message, please do not reply to this email.
-            © 2026 Your Platform. All rights reserved.
-            """
-            
-            success, _ = dispatch_email(to_email, subject, html_content, text_content)
+            success, err_msg = dispatch_email(
+                to_email=to_email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content,
+                sender_name="Senti Security"
+            )
             return success
             
         except Exception as e:

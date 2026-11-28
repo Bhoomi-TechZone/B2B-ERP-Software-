@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useTheme } from '../../../context/ThemeContext';
 import {
   ArrowLeft,
@@ -14,9 +14,13 @@ import SignInForm from './SignInForm';
 import RegisterWizard from './RegisterWizard';
 import FuturisticCityscape from './FuturisticCityscape';
 import FuturisticHandsBridge from './FuturisticHandsBridge';
+import { buildSignInUrl, buildRegisterUrl } from '../../../utils/authSession';
 
-export default function AuthPage({ initialView = 'signin', onClose, selectedPlan = 'pro-plan' }) {
+export default function AuthPage({ initialView = 'signin', onClose, selectedPlan = 'pro-plan', initialRecoveryOpen = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
   const handleClose = () => {
     if (onClose) {
       onClose();
@@ -24,17 +28,56 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
       navigate('/');
     }
   };
+
   const { isLight, toggleTheme } = useTheme();
+
+  // Determine initial view from URL path
   const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      if (hash === '#register' || hash === '#signup') return 'register';
-      if (hash === '#signin' || hash === '#login') return 'signin';
-    }
+    if (location.pathname.includes('register')) return 'register';
+    if (location.pathname.includes('sign-in') || location.pathname.includes('account-recovery')) return 'signin';
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    if (hash === '#register' || hash === '#signup') return 'register';
+    if (hash === '#signin' || hash === '#login') return 'signin';
     return initialView;
   }); // 'signin' | 'register'
+
   const [successData, setSuccessData] = useState(null);
   const formScrollRef = useRef(null);
+
+  const urlPlan = searchParams.get('plan') || selectedPlan || 'pro-plan';
+  const urlBilling = searchParams.get('billing') || 'monthly';
+  const urlRegion = searchParams.get('region') || 'IN';
+
+  // Listen to browser forward/back navigation
+  useEffect(() => {
+    if (location.pathname.includes('/auth/register')) {
+      setActiveTab('register');
+    } else if (location.pathname.includes('/auth/sign-in') || location.pathname.includes('/auth/account-recovery')) {
+      setActiveTab('signin');
+    }
+  }, [location.pathname]);
+
+  const handleSwitchToRegister = () => {
+    setActiveTab('register');
+    const professionalUrl = buildRegisterUrl({
+      ref: searchParams.get('ref') || 'portal',
+      plan: urlPlan,
+      billing: urlBilling,
+      region: urlRegion,
+      mode: 'new-company',
+    });
+    navigate(professionalUrl, { replace: true });
+  };
+
+  const handleSwitchToSignIn = () => {
+    setActiveTab('signin');
+    const professionalUrl = buildSignInUrl({
+      ref: searchParams.get('ref') || 'portal',
+      mode: 'enterprise',
+      op: 'authorize',
+    });
+    navigate(professionalUrl, { replace: true });
+  };
 
   const handlePageWheel = (e) => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) return;
@@ -47,14 +90,39 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
     }
   };
 
-  // Sync hash with browser URL
+  // Synchronize browser address bar with Canonical Secure Professional URLs
   useEffect(() => {
-    if (activeTab === 'signin') {
-      window.history.replaceState(null, '', '#signin');
-    } else {
-      window.history.replaceState(null, '', '#register');
+    const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
+    const hasSessionToken = currentSearch.includes('session_token=');
+
+    // Clean hash completely if present
+    if (window.location.hash) {
+      window.history.replaceState(null, '', currentPath + (currentSearch || ''));
     }
-  }, [activeTab]);
+
+    if (activeTab === 'signin') {
+      if (!currentPath.includes('/auth/sign-in') || !hasSessionToken) {
+        const professionalUrl = buildSignInUrl({
+          ref: searchParams.get('ref') || 'portal',
+          mode: searchParams.get('mode') || 'enterprise',
+          op: 'authorize',
+        });
+        navigate(professionalUrl, { replace: true });
+      }
+    } else if (activeTab === 'register') {
+      if (!currentPath.includes('/auth/register') || !hasSessionToken) {
+        const professionalUrl = buildRegisterUrl({
+          ref: searchParams.get('ref') || 'portal',
+          plan: urlPlan,
+          billing: urlBilling,
+          region: urlRegion,
+          mode: 'new-company',
+        });
+        navigate(professionalUrl, { replace: true });
+      }
+    }
+  }, [activeTab, urlPlan, urlBilling, urlRegion, searchParams, navigate]);
 
   // Lock background body scroll to eliminate duplicate scrollbar
   useEffect(() => {
@@ -67,11 +135,10 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
 
   return (
     <div
-      className={`fixed inset-0 z-50 overflow-hidden select-none transition-colors duration-300 flex flex-col ${
-        isLight
+      className={`fixed inset-0 z-50 overflow-hidden select-none transition-colors duration-300 flex flex-col ${isLight
           ? 'bg-[#FBF9F7] text-gray-900'
           : 'bg-[#070202] text-white'
-      }`}
+        }`}
       style={{
         background: isLight
           ? 'linear-gradient(180deg, #FFFFFF 0%, #FFF5F2 25%, #FCE8E2 50%, #F5ECE7 80%, #EFE9E4 100%)'
@@ -118,7 +185,7 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
         }}
       />
 
-      {/* Top-Right Ambient Cosmic Rim (Page-level, seamlessly blended in space) */}
+      {/* Top-Right Ambient Cosmic Rim */}
       {!isLight && (
         <div className="fixed -top-10 -right-10 w-[540px] h-[380px] pointer-events-none z-0 overflow-hidden">
           <svg viewBox="0 0 540 380" className="w-full h-full">
@@ -143,7 +210,7 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
       )}
 
       {/* ========================================================= */}
-      {/* 1. TOP HEADER: Fixed in place (non-scrollable)            */}
+      {/* 1. TOP HEADER: Fixed in place                             */}
       {/* ========================================================= */}
       <header className="relative z-30 shrink-0 w-full max-w-[1560px] mx-auto px-5 sm:px-10 pt-4 sm:pt-6 pb-2">
         <div className="relative flex items-center justify-between w-full">
@@ -151,27 +218,25 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
           <button
             type="button"
             onClick={handleClose}
-            className={`group px-3.5 sm:px-4 py-1.5 rounded-full border text-xs sm:text-[13px] font-medium tracking-wide transition-all duration-200 flex items-center gap-2 active:scale-95 cursor-pointer ${
-              isLight
+            className={`group px-3.5 sm:px-4 py-1.5 rounded-full border text-xs sm:text-[13px] font-medium tracking-wide transition-all duration-200 flex items-center gap-2 active:scale-95 cursor-pointer ${isLight
                 ? 'border-gray-300 bg-white/70 hover:bg-white text-gray-800 shadow-sm'
                 : 'border-white/15 bg-white/[0.06] hover:bg-white/[0.12] text-white'
-            }`}
+              }`}
           >
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to Home</span>
           </button>
 
-          {/* Center: Original Senti Logo & Branding (Dead-center aligned) */}
+          {/* Center: Original Senti Logo & Branding */}
           <div
             onClick={handleClose}
             className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex items-center gap-2 cursor-pointer group select-none"
-            title="Senti Home"
+            title="Back to Home"
           >
             <div className="relative w-6 h-6 flex items-center justify-center">
               <svg
-                className={`w-5 h-5 transition-colors ${
-                  isLight ? 'text-gray-950 group-hover:text-[#FF7900]' : 'text-white group-hover:text-[#FF7900]'
-                }`}
+                className={`w-5 h-5 transition-colors ${isLight ? 'text-gray-950 group-hover:text-[#FF7900]' : 'text-white group-hover:text-[#FF7900]'
+                  }`}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -185,9 +250,8 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
                 <path d="M12 12l9-5" />
               </svg>
             </div>
-            <span className={`text-[19px] tracking-[0.06em] font-light ${
-              isLight ? 'text-gray-950' : 'text-white'
-            }`}>
+            <span className={`text-[19px] tracking-[0.06em] font-light ${isLight ? 'text-gray-950' : 'text-white'
+              }`}>
               Senti
             </span>
           </div>
@@ -196,58 +260,55 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
           <button
             type="button"
             onClick={toggleTheme}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 border active:scale-90 ${
-              isLight
-                ? 'bg-orange-50 border-orange-200 text-[#FF7900] hover:bg-orange-100 shadow-sm'
+            aria-label={isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 border active:scale-90 cursor-pointer ${isLight
+                ? 'bg-orange-50 border-orange-200 text-[#FF6B00] hover:bg-orange-100 shadow-sm'
                 : 'bg-white/10 border-white/20 text-yellow-300 hover:bg-white/20 hover:text-yellow-200'
-            }`}
-            aria-label="Toggle Theme"
+              }`}
           >
-            {isLight ? <Moon className="w-4 h-4 fill-current" /> : <Sun className="w-4 h-4 fill-current" />}
+            {isLight ? (
+              <Moon className="w-4 h-4 fill-current transition-transform duration-300" />
+            ) : (
+              <Sun className="w-4 h-4 fill-current transition-transform duration-300" />
+            )}
           </button>
         </div>
       </header>
 
       {/* ========================================================= */}
-      {/* 2. MAIN 2-COLUMN WORKSPACE: Locked on Desktop             */}
+      {/* 2. MAIN 3-COLUMN CONTENT CANVAS                           */}
       {/* ========================================================= */}
       <main
         onWheel={handlePageWheel}
-        className="relative z-20 flex-1 overflow-y-auto lg:overflow-hidden no-scrollbar flex flex-col items-center px-4 pt-1 sm:pt-1.5 pb-4 lg:pb-6"
+        className="relative z-20 flex-1 w-full max-w-[1560px] mx-auto px-4 sm:px-8 lg:px-10 flex flex-col justify-center py-2 sm:py-4 overflow-y-auto no-scrollbar"
       >
-        
-        {/* 2-Column / 3-Zone Responsive Layout - Expansive across viewport */}
-        <div className="w-full max-w-[1520px] my-auto lg:my-0 mx-auto px-3 sm:px-8 lg:px-12 xl:px-16 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-6 items-start">
-          
-          {/* LEFT SECTION: Stuck in place, auto-fading feature cards */}
-          <div className="hidden lg:flex lg:col-span-5 xl:col-span-4 w-full justify-start items-start pt-2 lg:pt-4 pl-2 lg:pl-4 xl:pl-6">
-            <FuturisticCityscape isLight={isLight} />
-          </div>
+        <div className="w-full flex-1 flex flex-col justify-center items-center">
 
-          {/* CENTER GAP BRIDGE: Full-Vertical Animated Cosmic Hands */}
-          <div className="hidden xl:flex xl:col-span-2 w-full h-full items-center justify-center self-stretch select-none pointer-events-none">
-            <FuturisticHandsBridge isLight={isLight} />
-          </div>
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center max-w-[1400px] mx-auto">
 
-          {/* RIGHT SECTION: Shifted higher up and to the right */}
-          <div className="col-span-12 lg:col-span-7 xl:col-span-6 w-full flex flex-col items-center lg:items-end justify-start lg:mt-0 pr-2 lg:pr-4 xl:pr-6">
-            
-            <div className="w-full max-w-[620px] sm:max-w-[660px] flex flex-col items-center">
-              
-              {/* Form 3D Flip Card Container */}
-              <div className="w-full flex justify-center [perspective:1400px]">
+            {/* LEFT COLUMN: Futuristic Illustration */}
+            <div className="hidden lg:flex lg:col-span-5 flex-col justify-center items-start pl-2 xl:pl-6 select-none relative">
+              <FuturisticCityscape isLight={isLight} />
+            </div>
+
+            {/* RIGHT COLUMN: 3D Flip Card Container */}
+            <div className="lg:col-span-7 flex flex-col items-center justify-center relative w-full">
+
+              <div className="w-full max-w-[620px] sm:max-w-[660px] relative [perspective:1600px]">
                 <motion.div
                   animate={{ rotateY: activeTab === 'register' ? 180 : 0 }}
                   transition={{
-                    duration: 0.65,
+                    duration: 0.55,
                     ease: [0.22, 1, 0.36, 1],
                   }}
                   style={{
                     transformStyle: 'preserve-3d',
+                    display: 'grid',
+                    gridTemplateAreas: '"card"',
                   }}
-                  className="w-full relative grid [grid-template-areas:'card'] items-start justify-items-center"
+                  className="w-full relative"
                 >
-                  {/* FRONT FACE: Sign In */}
+                  {/* FRONT FACE: Sign In Credentials */}
                   <div
                     style={{
                       gridArea: 'card',
@@ -255,13 +316,13 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
                       WebkitBackfaceVisibility: 'hidden',
                       pointerEvents: activeTab === 'signin' ? 'auto' : 'none',
                     }}
-                    className={`w-full flex justify-center transition-opacity duration-200 ${
-                      activeTab === 'signin' ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none'
-                    }`}
+                    className={`w-full flex justify-center transition-opacity duration-200 ${activeTab === 'signin' ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none'
+                      }`}
                   >
                     <SignInForm
                       isLight={isLight}
-                      onSwitchToRegister={() => setActiveTab('register')}
+                      initialRecoveryOpen={initialRecoveryOpen || location.pathname.includes('account-recovery')}
+                      onSwitchToRegister={handleSwitchToRegister}
                       onSignInSuccess={(data) => {
                         setSuccessData(data);
                         setTimeout(() => {
@@ -280,14 +341,13 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
                       transform: 'rotateY(180deg)',
                       pointerEvents: activeTab === 'register' ? 'auto' : 'none',
                     }}
-                    className={`w-full flex justify-center transition-opacity duration-200 ${
-                      activeTab === 'register' ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none'
-                    }`}
+                    className={`w-full flex justify-center transition-opacity duration-200 ${activeTab === 'register' ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none'
+                      }`}
                   >
                     <RegisterWizard
                       isLight={isLight}
-                      onSwitchToSignIn={() => setActiveTab('signin')}
-                      defaultPlan={selectedPlan}
+                      onSwitchToSignIn={handleSwitchToSignIn}
+                      defaultPlan={urlPlan}
                       scrollRef={formScrollRef}
                       onRegisterComplete={(data) => {
                         setSuccessData(data);
@@ -306,7 +366,7 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
       </main>
 
       {/* ========================================================= */}
-      {/* PANORAMIC CONTINUOUS HORIZON (Unifies Left, Center, Right) */}
+      {/* PANORAMIC CONTINUOUS HORIZON                              */}
       {/* ========================================================= */}
       {!isLight && (
         <div className="fixed bottom-0 left-0 right-0 h-[220px] pointer-events-none z-10 overflow-hidden">
@@ -348,54 +408,9 @@ export default function AuthPage({ initialView = 'signin', onClose, selectedPlan
               d="M -50 240 C 250 85, 800 135, 1650 215 L 1650 260 L -50 260 Z"
               fill="url(#panPlanetBody)"
             />
-
-            {/* Left Planet Night-Side City Lights (under Left Illustration) */}
-            <g opacity="0.65" fill="#FFA500">
-              <circle cx="80" cy="140" r="1.3" />
-              <circle cx="85" cy="144" r="0.9" />
-              <circle cx="92" cy="138" r="1.6" />
-              <circle cx="110" cy="148" r="1.2" />
-              <circle cx="130" cy="155" r="1.5" />
-              <circle cx="160" cy="142" r="1.8" fill="#FFC875" />
-              <circle cx="168" cy="146" r="1.1" />
-              <circle cx="190" cy="150" r="1.4" />
-              <circle cx="230" cy="158" r="1.5" />
-              <circle cx="280" cy="165" r="1.7" fill="#FFE28A" />
-              <circle cx="340" cy="172" r="1.4" />
-              <circle cx="410" cy="180" r="1.3" />
-            </g>
-
-            {/* Continuous Glowing Neon Orange Horizon Arc Line */}
-            <path
-              d="M -50 240 C 250 85, 800 135, 1650 215"
-              fill="none"
-              stroke="#FF7900"
-              strokeWidth="3.2"
-              filter="url(#panGlow)"
-            />
-            <path
-              d="M -50 240 C 250 85, 800 135, 1650 215"
-              fill="none"
-              stroke="#FFE6A3"
-              strokeWidth="1"
-              opacity="0.9"
-            />
           </svg>
         </div>
       )}
-
-      {/* ========================================================= */}
-      {/* 3. BOTTOM FOOTER: Compliance & Security Badges            */}
-      {/* ========================================================= */}
-      <footer className="relative z-20 w-full py-4 px-6 text-center text-xs text-gray-500 flex flex-wrap items-center justify-center gap-6">
-        <div className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>SOC-2 Type II Certified & End-to-End Encrypted</span>
-        </div>
-        <span>•</span>
-        <span>© 2026 HRMSB2B Inc. All rights reserved.</span>
-      </footer>
-
     </div>
   );
 }
